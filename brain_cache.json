@@ -1,0 +1,92 @@
+{
+    "brain_cache": [
+        {
+            "id": "GAM-01",
+            "domain": "Gamification Strategy",
+            "topic": "The PBL Fallacy",
+            "rule": "Do not rely on Points, Badges, and Leaderboards (PBL) as the primary drivers of engagement; they are feedback mechanics, not motivation.",
+            "type": "MUST_AVOID",
+            "trigger": "When designing a gamified system for long-term retention",
+            "verification": "Audit system for 'Core Drives' beyond simple status indicators",
+            "red_flag": "User engagement drops once rewards are achieved or removed",
+            "source_ref": "Actionable Gamification, Chapter 2"
+        },
+        {
+            "id": "GAM-02",
+            "domain": "Social Interaction",
+            "topic": "Social Invite Timing",
+            "rule": "Never prompt users to invite friends during onboarding; defer this request until after the 'First Major Win-State'.",
+            "type": "MUST_DO",
+            "trigger": "Designing the 'Viral Loop' or referral flow",
+            "verification": "Check flow diagrams to ensure social prompts occur after value delivery",
+            "red_flag": "High drop-off rates at the 'Invite Friends' screen during signup",
+            "source_ref": "Actionable Gamification, Chapter 13"
+        },
+        {
+            "id": "UX-01",
+            "domain": "Interaction Design",
+            "topic": "Safe Exploration",
+            "rule": "Provide immediate 'Escape Hatches' (Undo, Cancel, Back) to allow users to explore without fear of irreversible consequences.",
+            "type": "MUST_DO",
+            "trigger": "When designing complex workflows or editors",
+            "verification": "Verify that every destructive action has a reversible state or confirmation",
+            "red_flag": "Users hesitate to click features or repeatedly ask for confirmation",
+            "source_ref": "Designing Interfaces, Chapter 1 & 3"
+        },
+        {
+            "id": "UX-02",
+            "domain": "Form Design",
+            "topic": "Inline Validation",
+            "rule": "Validate form inputs in real-time (after focus loss or during typing) rather than waiting for a full submit action.",
+            "type": "PATTERN",
+            "trigger": "Designing registration forms or data entry fields",
+            "verification": "Test form with invalid data; error messages should appear immediately",
+            "red_flag": "User completes a long form only to be rejected by a server-side error",
+            "source_ref": "Designing Interfaces, Chapter 10"
+        },
+        {
+            "id": "UI-01",
+            "domain": "Visual Layout",
+            "topic": "Touch Targets",
+            "rule": "Use 'Generous Borders' and whitespace around tappable elements to accommodate inaccurate touch inputs.",
+            "type": "MUST_DO",
+            "trigger": "Designing for mobile or touch interfaces",
+            "verification": "Check tap targets against minimum size guidelines (e.g., 44px)",
+            "red_flag": "Users accidentally trigger adjacent controls",
+            "source_ref": "Designing Interfaces, Chapter 4"
+        },
+        {
+            "id": "GAM-03",
+            "domain": "Motivation Design",
+            "topic": "Intrinsic Motivation Transition",
+            "rule": "Use Extrinsic Rewards (gift cards, money) to attract users, but transition quickly to Intrinsic Rewards (recognition, status) to prevent the Overjustification Effect.",
+            "type": "STRATEGY",
+            "trigger": "Designing a rewards program or loyalty loop",
+            "verification": "Map the user journey from 'Reward-based' to 'Activity-based' engagement",
+            "red_flag": "Users stop performing the activity the moment the monetary reward stops",
+            "source_ref": "Actionable Gamification, Chapter 13"
+        },
+        {
+            "id": "UI-02",
+            "domain": "Design Skill",
+            "topic": "Learning by Analysis",
+            "rule": "Analyze unconventional design choices rather than just recreating polished interfaces to truly understand design nuances.",
+            "type": "MUST_DO",
+            "trigger": "When attempting to improve UI design skills",
+            "verification": "Review design case studies for 'why' decisions were made, not just 'how'",
+            "red_flag": "Designs look 'clean' but fail to solve specific edge-case problems",
+            "source_ref": "Refactoring UI PDF, Summary Point 2"
+        },
+        {
+            "id": "UX-03",
+            "domain": "Navigation",
+            "topic": "Jump to Item",
+            "rule": "In long lists, allow users to type the first letter(s) of an item to immediately scroll to and select it.",
+            "type": "PATTERN",
+            "trigger": "Designing dropdowns, file finders, or long data lists",
+            "verification": "Open list and type a character; focus should jump immediately",
+            "red_flag": "Users are forced to scroll manually through hundreds of items",
+            "source_ref": "Designing Interfaces, Chapter 7"
+        }
+    ]
+}
