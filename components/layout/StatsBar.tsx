@@ -1,61 +1,137 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/store/gameStore';
-import { Heart, Zap, RotateCcw, ChevronDown, ChevronUp, Flame, Trophy } from 'lucide-react';
+import { Heart, Zap, RotateCcw, ChevronDown, ChevronUp, Flame, Trophy, Shield, Target, Sparkles, Crown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-// Layer 1 (GAM-01): Add meaning beyond PBL numbers
-function getHealthStatus(hpPercent: number): { message: string; emoji: string; color: string } {
-    if (hpPercent >= 80) return { message: 'Feeling strong!', emoji: '💪', color: 'text-success' };
-    if (hpPercent >= 50) return { message: 'Staying steady', emoji: '😊', color: 'text-amber-500' };
-    if (hpPercent >= 25) return { message: 'Need some rest', emoji: '😓', color: 'text-orange-500' };
-    return { message: 'Critical! Take care', emoji: '🆘', color: 'text-destructive' };
+// Layer 1: Enhanced health status with game-like descriptions
+function getHealthStatus(hpPercent: number): {
+    message: string;
+    emoji: string;
+    color: string;
+    subtitle: string;
+    gradient: string;
+} {
+    if (hpPercent >= 90) return {
+        message: 'Invincible!',
+        emoji: '👑',
+        color: 'text-purple-400',
+        subtitle: 'Nothing can stop you',
+        gradient: 'from-purple-500/20 to-pink-500/20'
+    };
+    if (hpPercent >= 70) return {
+        message: 'Feeling strong!',
+        emoji: '💪',
+        color: 'text-emerald-400',
+        subtitle: 'Energy is overflowing',
+        gradient: 'from-emerald-500/20 to-cyan-500/20'
+    };
+    if (hpPercent >= 50) return {
+        message: 'Steady & Ready',
+        emoji: '⚡',
+        color: 'text-amber-400',
+        subtitle: 'Keep pushing forward',
+        gradient: 'from-amber-500/20 to-orange-500/20'
+    };
+    if (hpPercent >= 30) return {
+        message: 'Need rest',
+        emoji: '😓',
+        color: 'text-orange-400',
+        subtitle: 'Take it easy for a bit',
+        gradient: 'from-orange-500/20 to-red-500/20'
+    };
+    if (hpPercent >= 10) return {
+        message: 'Danger Zone!',
+        emoji: '⚠️',
+        color: 'text-red-400',
+        subtitle: 'Recovery needed',
+        gradient: 'from-red-500/20 to-rose-500/20'
+    };
+    return {
+        message: 'CRITICAL!',
+        emoji: '🆘',
+        color: 'text-rose-400',
+        subtitle: 'Immediate action required',
+        gradient: 'from-rose-600/30 to-red-600/30'
+    };
 }
 
-// Layer 6 (GAM-03): Intrinsic motivation messages based on activity
-function getMotivationMessage(level: number, xpPercent: number): string {
-    if (xpPercent >= 90) return "Almost there! One more push! 🔥";
-    if (xpPercent >= 50) return "Halfway to the next level!";
-    if (level >= 5) return "You're becoming a master!";
-    if (level >= 3) return "Building great habits!";
-    return "Every step counts!";
+// Layer 6: Enhanced motivation messages
+function getMotivationMessage(level: number, xpPercent: number, xp: number): {
+    message: string;
+    icon: React.ReactNode;
+    color: string;
+} {
+    if (xpPercent >= 95) return {
+        message: "LEVEL UP IMMINENT!",
+        icon: <Sparkles className="w-3 h-3" />,
+        color: "text-yellow-300"
+    };
+    if (xpPercent >= 75) return {
+        message: "Almost there! Keep going!",
+        icon: <Flame className="w-3 h-3" />,
+        color: "text-orange-400"
+    };
+    if (xpPercent >= 50) return {
+        message: "Halfway to greatness!",
+        icon: <Target className="w-3 h-3" />,
+        color: "text-amber-400"
+    };
+    if (level >= 10) return {
+        message: "Legend in the making!",
+        icon: <Crown className="w-3 h-3" />,
+        color: "text-purple-400"
+    };
+    if (level >= 5) return {
+        message: "Master adventurer!",
+        icon: <Trophy className="w-3 h-3" />,
+        color: "text-cyan-400"
+    };
+    if (xp > 0) return {
+        message: "Every step counts!",
+        icon: <Zap className="w-3 h-3" />,
+        color: "text-emerald-400"
+    };
+    return {
+        message: "Start your journey!",
+        icon: <Shield className="w-3 h-3" />,
+        color: "text-slate-400"
+    };
+}
+
+// XP calculation for next level
+function getNextLevelXP(level: number): number {
+    return Math.floor(100 * Math.pow(1.5, level - 1));
 }
 
 export function StatsBar() {
-    const { hp, maxHp, xp, xpToLevel, level, resetStats } = useGameStore();
+    const { hp, maxHp, xp, level, resetStats } = useGameStore();
     const [isExpanded, setIsExpanded] = useState(false);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
-    // Layer 4 (UX-02): Real-time feedback state
-    const [lastChange, setLastChange] = useState<{ type: 'hp' | 'xp'; delta: number } | null>(null);
-    const [prevHp, setPrevHp] = useState(hp);
-    const [prevXp, setPrevXp] = useState(xp);
+    const [isHovered, setIsHovered] = useState(false);
+    const [showCelebration, setShowCelebration] = useState(false);
 
-    const hpPercentage = (hp / maxHp) * 100;
-    const xpPercentage = (xp / xpToLevel) * 100;
-    const healthStatus = getHealthStatus(hpPercentage);
-    const motivationMessage = getMotivationMessage(level, xpPercentage);
+    // Calculate XP for current level
+    const xpToLevel = useMemo(() => getNextLevelXP(level), [level]);
+    const xpInLevel = useMemo(() => xp % xpToLevel, [xp, xpToLevel]);
+    const xpPercentage = useMemo(() => (xpInLevel / xpToLevel) * 100, [xpInLevel, xpToLevel]);
+    const hpPercentage = useMemo(() => (hp / maxHp) * 100, [hp, maxHp]);
 
-    // Layer 4 (UX-02): Detect changes and show inline feedback
+    const healthStatus = useMemo(() => getHealthStatus(hpPercentage), [hpPercentage]);
+    const motivation = useMemo(() => getMotivationMessage(level, xpPercentage, xpInLevel), [level, xpPercentage, xpInLevel]);
+
+    // Celebration effect when XP is nearly full
     useEffect(() => {
-        if (hp !== prevHp) {
-            const delta = hp - prevHp;
-            setLastChange({ type: 'hp', delta });
-            setPrevHp(hp);
-            setTimeout(() => setLastChange(null), 1500);
+        if (xpPercentage >= 95 && !showCelebration) {
+            setShowCelebration(true);
+            const timer = setTimeout(() => setShowCelebration(false), 2000);
+            return () => clearTimeout(timer);
         }
-    }, [hp, prevHp]);
-
-    useEffect(() => {
-        if (xp !== prevXp) {
-            const delta = xp - prevXp;
-            setLastChange({ type: 'xp', delta });
-            setPrevXp(xp);
-            setTimeout(() => setLastChange(null), 1500);
-        }
-    }, [xp, prevXp]);
+    }, [xpPercentage, showCelebration]);
 
     const handleResetClick = () => {
         if (showResetConfirm) {
@@ -67,106 +143,194 @@ export function StatsBar() {
         }
     };
 
+    // Avatar animations
+    const avatarVariants = {
+        normal: { scale: 1, rotate: 0 },
+        hover: { scale: 1.05, rotate: 5 },
+        critical: { scale: 1.1, rotate: [0, 5, -5, 0] },
+    };
+
     return (
-        <div className="space-y-3">
-            {/* Main stats row */}
-            <div className="flex items-center gap-4">
-                {/* Layer 5 (UI-01): Larger touch target for avatar */}
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="relative p-1 -m-1 rounded-xl hover:bg-muted/50 transition-colors"
-                    aria-label="Toggle stats details"
-                >
-                    <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center border-2 border-primary/50 shrink-0">
-                        <span className="text-2xl">🧙</span>
-                    </div>
-                    <span className="absolute -bottom-1 -right-0 text-sm bg-background rounded-full p-0.5 shadow-sm">
-                        {healthStatus.emoji}
-                    </span>
-                </button>
+        <div
+            className={cn(
+                "space-y-4 p-4 rounded-2xl border bg-gradient-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-sm",
+                "shadow-2xl shadow-black/20",
+                hpPercentage < 20 && "animate-pulse-slow border-red-500/30",
+                showCelebration && "ring-2 ring-yellow-400/50"
+            )}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {/* Main Header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <motion.div
+                        variants={avatarVariants}
+                        animate={hpPercentage < 20 ? "critical" : isHovered ? "hover" : "normal"}
+                        className={cn(
+                            "relative w-16 h-16 rounded-xl border-2",
+                            "bg-gradient-to-br from-primary/20 to-accent/20",
+                            "flex items-center justify-center cursor-pointer",
+                            healthStatus.gradient && `bg-gradient-to-br ${healthStatus.gradient}`,
+                            "shadow-lg"
+                        )}
+                        onClick={() => setIsExpanded(!isExpanded)}
+                    >
+                        <span className="text-3xl">🧙‍♂️</span>
+                        {/* Level Badge */}
+                        <div className="absolute -bottom-2 -right-2">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-r from-yellow-600 to-amber-600 rounded-full blur-sm" />
+                                <div className={cn(
+                                    "relative px-3 py-1 rounded-full text-xs font-bold",
+                                    "bg-gradient-to-r from-yellow-500 to-amber-500 text-yellow-950",
+                                    "flex items-center gap-1 shadow-lg"
+                                )}>
+                                    <Trophy className="w-3 h-3" />
+                                    Lv {level}
+                                </div>
+                            </div>
+                        </div>
+                        {/* Health Status Emoji */}
+                        <div className="absolute -top-2 -left-2">
+                            <div className="bg-slate-900 rounded-full p-1.5 shadow-lg border border-slate-700">
+                                <span className="text-sm">{healthStatus.emoji}</span>
+                            </div>
+                        </div>
+                    </motion.div>
 
-                {/* Compact info */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1.5">
+                    <div className="space-y-1">
+                        <h3 className="font-bold text-lg bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                            Adventurer
+                        </h3>
                         <div className="flex items-center gap-2">
-                            <span className="font-bold text-foreground">Adventurer</span>
-                            {/* Layer 5 (UI-01): Larger level badge for touch */}
-                            <span className="px-2.5 py-1 text-xs rounded-full bg-primary/20 text-primary font-medium flex items-center gap-1">
-                                <Trophy className="w-3 h-3" />
-                                Lv. {level}
+                            <span className={cn("text-sm font-medium", healthStatus.color)}>
+                                {healthStatus.message}
                             </span>
-                        </div>
-                        {/* Layer 6 (GAM-03): Intrinsic motivation message */}
-                        <span className={`text-xs italic hidden sm:block ${healthStatus.color}`}>
-                            {motivationMessage}
-                        </span>
-                    </div>
-
-                    {/* Inline bars with feedback */}
-                    <div className="flex items-center gap-4">
-                        {/* HP Bar */}
-                        <div className="flex items-center gap-2 flex-1 relative">
-                            <Heart className="w-4 h-4 text-destructive shrink-0" />
-                            <Progress
-                                value={hpPercentage}
-                                className="h-2.5 flex-1 bg-muted [&>div]:bg-[hsl(var(--hp-bar))] [&>div]:transition-all [&>div]:duration-300"
-                            />
-                            <span className="text-xs text-muted-foreground w-14 text-right font-mono">{hp}/{maxHp}</span>
-
-                            {/* Layer 4 (UX-02): Inline change feedback */}
-                            <AnimatePresence>
-                                {lastChange?.type === 'hp' && (
-                                    <motion.span
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className={`absolute -top-5 right-0 text-xs font-bold ${lastChange.delta > 0 ? 'text-success' : 'text-destructive'}`}
-                                    >
-                                        {lastChange.delta > 0 ? '+' : ''}{lastChange.delta}
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
-                        </div>
-
-                        {/* XP Bar */}
-                        <div className="flex items-center gap-2 flex-1 relative">
-                            <Zap className="w-4 h-4 text-amber-500 shrink-0" />
-                            <Progress
-                                value={xpPercentage}
-                                className="h-2.5 flex-1 bg-muted [&>div]:bg-amber-500 [&>div]:transition-all [&>div]:duration-300"
-                            />
-                            <span className="text-xs text-muted-foreground w-14 text-right font-mono">{xp}/{xpToLevel}</span>
-
-                            {/* Layer 4: XP change feedback */}
-                            <AnimatePresence>
-                                {lastChange?.type === 'xp' && (
-                                    <motion.span
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="absolute -top-5 right-0 text-xs font-bold text-success"
-                                    >
-                                        +{lastChange.delta} XP
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
+                            <span className="text-xs text-slate-400">•</span>
+                            <span className="text-xs text-slate-400">
+                                {healthStatus.subtitle}
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Layer 5 (UI-01): Larger expand button for touch */}
+                {/* Expand Button */}
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="shrink-0 h-10 w-10"
-                    aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
+                    className="shrink-0 h-12 w-12 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700"
                 >
-                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    {isExpanded ? (
+                        <ChevronUp className="w-5 h-5" />
+                    ) : (
+                        <ChevronDown className="w-5 h-5" />
+                    )}
                 </Button>
             </div>
 
-            {/* Expandable section */}
+            {/* Stats Bars */}
+            <div className="space-y-3">
+                {/* HP Bar */}
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Heart className={cn(
+                                "w-4 h-4",
+                                hpPercentage > 70 ? "text-red-400" :
+                                    hpPercentage > 30 ? "text-orange-400" :
+                                        "text-rose-400 animate-pulse"
+                            )} />
+                            <span className="text-sm font-medium text-slate-300">Health</span>
+                            <span className="text-xs text-slate-400 font-mono">
+                                {hp}/{maxHp}
+                            </span>
+                        </div>
+                        <span className={cn(
+                            "text-xs font-bold px-2 py-1 rounded",
+                            hpPercentage > 70 ? "bg-red-500/20 text-red-400" :
+                                hpPercentage > 30 ? "bg-orange-500/20 text-orange-400" :
+                                    "bg-rose-500/20 text-rose-400 animate-pulse"
+                        )}>
+                            {Math.round(hpPercentage)}%
+                        </span>
+                    </div>
+                    <Progress
+                        value={hpPercentage}
+                        className={cn(
+                            "h-3 bg-slate-800 border border-slate-700",
+                            "[&>div]:transition-all [&>div]:duration-500",
+                            hpPercentage > 70 ? "[&>div]:bg-gradient-to-r [&>div]:from-red-500 [&>div]:to-red-400" :
+                                hpPercentage > 30 ? "[&>div]:bg-gradient-to-r [&>div]:from-orange-500 [&>div]:to-amber-400" :
+                                    "[&>div]:bg-gradient-to-r [&>div]:from-rose-600 [&>div]:to-red-500 [&>div]:animate-pulse"
+                        )}
+                    />
+                </div>
+
+                {/* XP Bar */}
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Zap className={cn(
+                                "w-4 h-4",
+                                xpPercentage > 90 ? "text-yellow-400 animate-bounce" :
+                                    "text-amber-400"
+                            )} />
+                            <span className="text-sm font-medium text-slate-300">Experience</span>
+                            <span className="text-xs text-slate-400 font-mono">
+                                {xpInLevel}/{xpToLevel}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {showCelebration && (
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="text-yellow-400"
+                                >
+                                    <Sparkles className="w-4 h-4" />
+                                </motion.div>
+                            )}
+                            <span className={cn(
+                                "text-xs font-bold px-2 py-1 rounded",
+                                xpPercentage > 90 ? "bg-yellow-500/30 text-yellow-300" :
+                                    "bg-amber-500/20 text-amber-400"
+                            )}>
+                                {Math.round(xpPercentage)}%
+                            </span>
+                        </div>
+                    </div>
+                    <Progress
+                        value={xpPercentage}
+                        className={cn(
+                            "h-3 bg-slate-800 border border-slate-700",
+                            "[&>div]:transition-all [&>div]:duration-500",
+                            xpPercentage > 90 ?
+                                "[&>div]:bg-gradient-to-r [&>div]:from-yellow-500 [&>div]:to-amber-400 [&>div]:shadow-lg [&>div]:shadow-yellow-500/20" :
+                                "[&>div]:bg-gradient-to-r [&>div]:from-amber-500 [&>div]:to-orange-400"
+                        )}
+                    />
+                </div>
+            </div>
+
+            {/* Motivation Message */}
+            <div className={cn(
+                "flex items-center gap-2 p-3 rounded-xl border",
+                "bg-gradient-to-r from-slate-800/50 to-slate-900/50",
+                motivation.color.includes('yellow') && "border-yellow-500/30",
+                motivation.color.includes('purple') && "border-purple-500/30",
+                motivation.color.includes('cyan') && "border-cyan-500/30",
+            )}>
+                <div className={cn("p-2 rounded-lg", motivation.color.replace('text', 'bg') + '/20')}>
+                    {motivation.icon}
+                </div>
+                <span className={cn("text-sm font-medium", motivation.color)}>
+                    {motivation.message}
+                </span>
+            </div>
+
+            {/* Expandable Section */}
             <AnimatePresence>
                 {isExpanded && (
                     <motion.div
@@ -175,25 +339,65 @@ export function StatsBar() {
                         exit={{ opacity: 0, height: 0 }}
                         className="overflow-hidden"
                     >
-                        <div className="flex items-center justify-between pt-3 border-t border-border">
-                            {/* Layer 8 (UX-03): Quick stats summary */}
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                    <Flame className="w-3 h-3 text-orange-500" />
-                                    {Math.floor(xpPercentage)}% to next level
-                                </span>
+                        <div className="pt-4 border-t border-slate-700 space-y-4">
+                            {/* Stats Summary */}
+                            <div className="grid grid-cols-3 gap-3">
+                                <div className="bg-slate-800/50 rounded-xl p-3 text-center border border-slate-700">
+                                    <div className="text-xs text-slate-400 mb-1">Level</div>
+                                    <div className="text-2xl font-bold text-white">{level}</div>
+                                    <div className="text-xs text-slate-400 mt-1">
+                                        {xpPercentage >= 95 ? "Ready to level up!" : "Keep going!"}
+                                    </div>
+                                </div>
+                                <div className="bg-slate-800/50 rounded-xl p-3 text-center border border-slate-700">
+                                    <div className="text-xs text-slate-400 mb-1">XP Rate</div>
+                                    <div className="text-2xl font-bold text-amber-400">
+                                        {Math.round(xpPercentage)}%
+                                    </div>
+                                    <div className="text-xs text-slate-400 mt-1">
+                                        to next level
+                                    </div>
+                                </div>
+                                <div className="bg-slate-800/50 rounded-xl p-3 text-center border border-slate-700">
+                                    <div className="text-xs text-slate-400 mb-1">Health</div>
+                                    <div className={cn(
+                                        "text-2xl font-bold",
+                                        hpPercentage > 70 ? "text-emerald-400" :
+                                            hpPercentage > 30 ? "text-amber-400" :
+                                                "text-rose-400"
+                                    )}>
+                                        {Math.round(hpPercentage)}%
+                                    </div>
+                                    <div className="text-xs text-slate-400 mt-1">
+                                        {hpPercentage > 70 ? "Optimal" : "Needs attention"}
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Layer 5 (UI-01): Larger reset button */}
-                            <Button
-                                variant={showResetConfirm ? "destructive" : "outline"}
-                                size="default"
-                                onClick={handleResetClick}
-                                className="text-sm min-h-[44px] px-4"
-                            >
-                                <RotateCcw className="w-4 h-4 mr-2" />
-                                {showResetConfirm ? 'Confirm Reset' : 'Reset Progress'}
-                            </Button>
+                            {/* Reset Button */}
+                            <div className="flex justify-center">
+                                <Button
+                                    variant={showResetConfirm ? "destructive" : "outline"}
+                                    size="lg"
+                                    onClick={handleResetClick}
+                                    className={cn(
+                                        "w-full transition-all duration-300",
+                                        showResetConfirm && "animate-pulse",
+                                        "border-slate-700 hover:border-slate-600",
+                                        "bg-gradient-to-r from-slate-900 to-slate-800"
+                                    )}
+                                >
+                                    <RotateCcw className={cn(
+                                        "w-4 h-4 mr-2 transition-transform",
+                                        showResetConfirm && "animate-spin"
+                                    )} />
+                                    {showResetConfirm ? (
+                                        <span className="font-bold">Confirm Reset - Are you sure?</span>
+                                    ) : (
+                                        <span>Reset Journey</span>
+                                    )}
+                                </Button>
+                            </div>
                         </div>
                     </motion.div>
                 )}
