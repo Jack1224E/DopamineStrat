@@ -33,6 +33,18 @@ interface ActiveBuffs {
     goldenPineResin: boolean;   // Next complete gives 2x Souls
 }
 
+// History entry for tracking completed tasks
+export interface HistoryEntry {
+    id: string;
+    taskId: string;
+    taskTitle: string;
+    taskType: TaskType;
+    category: TaskCategory;
+    action: 'completed' | 'failed' | 'positive' | 'negative';
+    soulsEarned?: number;
+    timestamp: string;  // ISO date string
+}
+
 interface GameState {
     // Core stats
     hp: number;
@@ -73,6 +85,9 @@ interface GameState {
     dailies: Task[];
     todos: Task[];
 
+    // History log
+    history: HistoryEntry[];
+
     // Computed getters (as functions)
     getMaxHp: () => number;
     getAttributeLevel: (category: TaskCategory) => number;
@@ -97,6 +112,7 @@ interface GameState {
     // Task actions
     addTask: (type: TaskType, title: string, category?: TaskCategory, isCritical?: boolean) => void;
     updateTask: (type: TaskType, taskId: string, updates: Partial<Task>) => void;
+    toggleChecklistItem: (type: TaskType, taskId: string, checklistItemId: string) => void;
     completeTask: (type: TaskType, taskId: string) => void;
     failTask: (type: TaskType, taskId: string) => void;
     deleteTask: (type: TaskType, taskId: string) => void;
@@ -233,6 +249,9 @@ const INITIAL_STATE = {
     isDowned: false,
     deathCount: 0,
     soulsLostTotal: 0,
+
+    // History
+    history: [] as HistoryEntry[],
 
     ...INITIAL_TASKS,
 };
@@ -550,6 +569,19 @@ export const useGameStore = create<GameState>()(
 
                     // Update category streak
                     state.updateCategoryStreak(category);
+
+                    // Add to history
+                    const historyEntry: HistoryEntry = {
+                        id: `hist-${Date.now()}`,
+                        taskId: task.id,
+                        taskTitle: task.title,
+                        taskType: type,
+                        category,
+                        action: type === 'habit' ? 'positive' : 'completed',
+                        soulsEarned: soulsReward,
+                        timestamp: new Date().toISOString(),
+                    };
+                    set((s) => ({ history: [...s.history, historyEntry] }));
                 }
 
                 // Remove completed todos
@@ -618,6 +650,42 @@ export const useGameStore = create<GameState>()(
                         return { todos: updateFn(state.todos) };
                     }
                 });
+            },
+
+            toggleChecklistItem: (type: TaskType, taskId: string, checklistItemId: string) => {
+                const state = get();
+                const taskList = type === 'habit' ? state.habits : type === 'daily' ? state.dailies : state.todos;
+                const task = taskList.find((t) => t.id === taskId);
+                if (!task || !task.checklist) return;
+
+                // Toggle the checklist item
+                const updatedChecklist = task.checklist.map((item) =>
+                    item.id === checklistItemId ? { ...item, completed: !item.completed } : item
+                );
+
+                // Check if all items are now completed
+                const allCompleted = updatedChecklist.every((item) => item.completed);
+
+                // Update the task with new checklist
+                set((s) => {
+                    const updateFn = (tasks: Task[]) =>
+                        tasks.map((t) =>
+                            t.id === taskId ? { ...t, checklist: updatedChecklist } : t
+                        );
+
+                    if (type === 'habit') {
+                        return { habits: updateFn(s.habits) };
+                    } else if (type === 'daily') {
+                        return { dailies: updateFn(s.dailies) };
+                    } else {
+                        return { todos: updateFn(s.todos) };
+                    }
+                });
+
+                // Auto-complete the task if all checklist items are done
+                if (allCompleted && updatedChecklist.length > 0) {
+                    state.completeTask(type, taskId);
+                }
             },
         }),
         {

@@ -5,7 +5,7 @@ import { StatsBar } from '@/components/layout/StatsBar';
 import { TaskColumn } from '@/components/task/TaskColumn';
 import { DeathScreen } from '@/components/game/DeathScreen';
 import { useGameStore } from '@/store/gameStore';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, History as HistoryIcon } from 'lucide-react';
 
 export default function TodayPage() {
     const { habits, dailies, todos } = useGameStore();
@@ -22,13 +22,22 @@ export default function TodayPage() {
                         <h1 className="text-lg font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
                             ⚔️ Dopamine Strategy
                         </h1>
-                        <Link
-                            href="/rules"
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/50 transition-all text-sm text-slate-300 hover:text-amber-400"
-                        >
-                            <BookOpen className="w-4 h-4" />
-                            Rules
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            <Link
+                                href="/history"
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/50 transition-all text-sm text-slate-300 hover:text-amber-400"
+                            >
+                                <HistoryIcon className="w-4 h-4" />
+                                History
+                            </Link>
+                            <Link
+                                href="/rules"
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-amber-500/50 transition-all text-sm text-slate-300 hover:text-amber-400"
+                            >
+                                <BookOpen className="w-4 h-4" />
+                                Rules
+                            </Link>
+                        </div>
                     </div>
                 </header>
 

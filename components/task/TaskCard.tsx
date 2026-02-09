@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Check, X, Plus, Minus, Coins, MoreVertical, Calendar, ListChecks } from 'lucide-react';
+import { Check, X, Plus, Minus, Coins, MoreVertical, Calendar, ListChecks, ChevronDown, ChevronRight, Square, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/store/gameStore';
 import { playSuccessSound } from '@/lib/sounds';
@@ -39,9 +39,10 @@ function formatDueDate(dateStr: string): { text: string; color: string } {
 }
 
 export function TaskCard({ task, compact = false }: TaskCardProps) {
-    const { soundEnabled, completeTask, failTask, updateTask, deleteTask } = useGameStore();
+    const { soundEnabled, completeTask, failTask, updateTask, deleteTask, toggleChecklistItem } = useGameStore();
     const [isCompleted, setIsCompleted] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
     // Fallback for tasks without category (legacy data)
     const category = task.category || 'productivity';
@@ -50,11 +51,19 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
     // Checklist progress
     const checklistTotal = task.checklist?.length || 0;
     const checklistDone = task.checklist?.filter((item) => item.completed).length || 0;
+    const hasChecklist = checklistTotal > 0;
 
     // Due date formatting
     const dueDateInfo = task.dueDate ? formatDueDate(task.dueDate) : null;
 
     const handlePositive = () => {
+        // Don't allow completion if there's a checklist with incomplete items
+        if (hasChecklist && checklistDone < checklistTotal) {
+            // Open checklist instead
+            setIsChecklistOpen(true);
+            return;
+        }
+
         completeTask(task.type, task.id);
         playSuccessSound(soundEnabled);
 
@@ -92,6 +101,10 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
         deleteTask(task.type, task.id);
     };
 
+    const handleToggleChecklistItem = (itemId: string) => {
+        toggleChecklistItem(task.type, task.id, itemId);
+    };
+
     // Compact layout for column view (Habitica-style)
     if (compact) {
         return (
@@ -107,106 +120,166 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.2 }}
                     className={cn(
-                        "relative flex items-center gap-2 p-3 rounded-md bg-background border border-border group",
+                        "relative rounded-md bg-background border border-border group",
                         "hover:bg-muted/50 transition-colors"
                     )}
                 >
-                    {/* Category emoji */}
-                    <span className="text-sm" title={categoryInfo.label}>
-                        {categoryInfo.emoji}
-                    </span>
+                    {/* Main task row */}
+                    <div className="flex items-center gap-2 p-3">
+                        {/* Category emoji */}
+                        <span className="text-sm" title={categoryInfo.label}>
+                            {categoryInfo.emoji}
+                        </span>
 
-                    {/* Plus/Minus buttons for habits, Check for others */}
-                    {task.type === 'habit' ? (
-                        <>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={handlePositive}
-                                className="h-8 w-8 p-0 text-success hover:bg-success/20 hover:text-success shrink-0"
-                            >
-                                <Plus className="w-4 h-4" />
-                            </Button>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate text-foreground">
-                                    {task.title}
-                                </p>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Coins className="w-3 h-3 text-cyan-400" />
-                                    <span className="text-cyan-400">{task.baseSouls || 5}</span>
-                                </p>
-                            </div>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={handleNegative}
-                                className="h-8 w-8 p-0 text-destructive hover:bg-destructive/20 hover:text-destructive shrink-0"
-                            >
-                                <Minus className="w-4 h-4" />
-                            </Button>
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={handlePositive}
-                                disabled={isCompleted}
-                                className={cn(
-                                    "h-8 w-8 p-0 shrink-0 rounded-sm border-2 transition-all",
-                                    isCompleted
-                                        ? 'bg-success border-success text-success-foreground'
-                                        : 'border-muted-foreground/30 hover:border-success hover:bg-success/10'
-                                )}
-                            >
-                                {isCompleted && <Check className="w-4 h-4" />}
-                            </Button>
-                            <div className="flex-1 min-w-0">
-                                <p className={cn(
-                                    "text-sm font-medium truncate",
-                                    isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'
-                                )}>
-                                    {task.title}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs">
-                                    {/* Souls */}
-                                    <span className="flex items-center gap-1">
+                        {/* Plus/Minus buttons for habits, Check for others */}
+                        {task.type === 'habit' ? (
+                            <>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handlePositive}
+                                    className="h-8 w-8 p-0 text-success hover:bg-success/20 hover:text-success shrink-0"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </Button>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate text-foreground">
+                                        {task.title}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
                                         <Coins className="w-3 h-3 text-cyan-400" />
                                         <span className="text-cyan-400">{task.baseSouls || 5}</span>
-                                    </span>
-
-                                    {/* Due Date (todos) */}
-                                    {task.type === 'todo' && dueDateInfo && (
-                                        <span className={cn("flex items-center gap-1", dueDateInfo.color)}>
-                                            <Calendar className="w-3 h-3" />
-                                            <span>{dueDateInfo.text}</span>
-                                        </span>
-                                    )}
-
-                                    {/* Checklist progress */}
-                                    {checklistTotal > 0 && (
-                                        <span className={cn(
-                                            "flex items-center gap-1",
-                                            checklistDone === checklistTotal ? "text-emerald-400" : "text-slate-400"
-                                        )}>
-                                            <ListChecks className="w-3 h-3" />
-                                            <span>{checklistDone}/{checklistTotal}</span>
-                                        </span>
-                                    )}
+                                    </p>
                                 </div>
-                            </div>
-                        </>
-                    )}
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handleNegative}
+                                    className="h-8 w-8 p-0 text-destructive hover:bg-destructive/20 hover:text-destructive shrink-0"
+                                >
+                                    <Minus className="w-4 h-4" />
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                {/* Expand/collapse button for checklist */}
+                                {hasChecklist && (
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => setIsChecklistOpen(!isChecklistOpen)}
+                                        className="h-6 w-6 p-0 shrink-0 text-muted-foreground hover:text-foreground"
+                                    >
+                                        {isChecklistOpen ? (
+                                            <ChevronDown className="w-4 h-4" />
+                                        ) : (
+                                            <ChevronRight className="w-4 h-4" />
+                                        )}
+                                    </Button>
+                                )}
 
-                    {/* 3-dot menu button */}
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setIsEditOpen(true)}
-                        className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-muted-foreground hover:text-foreground"
-                    >
-                        <MoreVertical className="w-4 h-4" />
-                    </Button>
+                                {/* Check button - disabled if checklist has incomplete items */}
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={handlePositive}
+                                    disabled={isCompleted || (hasChecklist && checklistDone < checklistTotal)}
+                                    className={cn(
+                                        "h-8 w-8 p-0 shrink-0 rounded-sm border-2 transition-all",
+                                        isCompleted
+                                            ? 'bg-success border-success text-success-foreground'
+                                            : hasChecklist && checklistDone < checklistTotal
+                                                ? 'border-muted-foreground/20 opacity-50 cursor-not-allowed'
+                                                : 'border-muted-foreground/30 hover:border-success hover:bg-success/10'
+                                    )}
+                                >
+                                    {isCompleted && <Check className="w-4 h-4" />}
+                                </Button>
+                                <div className="flex-1 min-w-0">
+                                    <p className={cn(
+                                        "text-sm font-medium truncate",
+                                        isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'
+                                    )}>
+                                        {task.title}
+                                    </p>
+                                    <div className="flex items-center gap-2 text-xs">
+                                        {/* Souls */}
+                                        <span className="flex items-center gap-1">
+                                            <Coins className="w-3 h-3 text-cyan-400" />
+                                            <span className="text-cyan-400">{task.baseSouls || 5}</span>
+                                        </span>
+
+                                        {/* Due Date (todos) */}
+                                        {task.type === 'todo' && dueDateInfo && (
+                                            <span className={cn("flex items-center gap-1", dueDateInfo.color)}>
+                                                <Calendar className="w-3 h-3" />
+                                                <span>{dueDateInfo.text}</span>
+                                            </span>
+                                        )}
+
+                                        {/* Checklist progress */}
+                                        {hasChecklist && (
+                                            <span className={cn(
+                                                "flex items-center gap-1",
+                                                checklistDone === checklistTotal ? "text-emerald-400" : "text-slate-400"
+                                            )}>
+                                                <ListChecks className="w-3 h-3" />
+                                                <span>{checklistDone}/{checklistTotal}</span>
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
+                        {/* 3-dot menu button */}
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setIsEditOpen(true)}
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-muted-foreground hover:text-foreground"
+                        >
+                            <MoreVertical className="w-4 h-4" />
+                        </Button>
+                    </div>
+
+                    {/* Inline checklist (collapsible) */}
+                    <AnimatePresence>
+                        {isChecklistOpen && hasChecklist && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                            >
+                                <div className="px-3 pb-3 pt-1 border-t border-border/50 space-y-1">
+                                    {task.checklist?.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            onClick={() => handleToggleChecklistItem(item.id)}
+                                            className={cn(
+                                                "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer",
+                                                "hover:bg-muted/50 transition-colors"
+                                            )}
+                                        >
+                                            {item.completed ? (
+                                                <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                                            ) : (
+                                                <Square className="w-4 h-4 text-slate-400 shrink-0" />
+                                            )}
+                                            <span className={cn(
+                                                "text-sm flex-1",
+                                                item.completed ? "line-through text-muted-foreground" : "text-foreground"
+                                            )}>
+                                                {item.text}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
 
                 {/* Edit Modal */}
@@ -290,7 +363,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                             )}
 
                             {/* Checklist progress */}
-                            {checklistTotal > 0 && (
+                            {hasChecklist && (
                                 <span className={cn(
                                     "flex items-center gap-1",
                                     checklistDone === checklistTotal ? "text-emerald-400" : "text-slate-400"
@@ -339,12 +412,14 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                                     size="icon"
                                     variant="ghost"
                                     onClick={handlePositive}
-                                    disabled={isCompleted}
+                                    disabled={isCompleted || (hasChecklist && checklistDone < checklistTotal)}
                                     className={cn(
                                         "h-10 w-10 rounded-full border-2 transition-all",
                                         isCompleted
                                             ? 'bg-success border-success text-success-foreground'
-                                            : 'border-muted hover:border-success hover:bg-success/10 text-muted-foreground'
+                                            : hasChecklist && checklistDone < checklistTotal
+                                                ? 'border-muted opacity-50 cursor-not-allowed'
+                                                : 'border-muted hover:border-success hover:bg-success/10 text-muted-foreground'
                                     )}
                                 >
                                     <Check className="w-5 h-5" />
@@ -361,6 +436,34 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                         )}
                     </div>
                 </div>
+
+                {/* Inline checklist for full view */}
+                {hasChecklist && (
+                    <div className="mt-3 pt-3 border-t border-border/50 space-y-1">
+                        {task.checklist?.map((item) => (
+                            <div
+                                key={item.id}
+                                onClick={() => handleToggleChecklistItem(item.id)}
+                                className={cn(
+                                    "flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer",
+                                    "hover:bg-muted/30 transition-colors"
+                                )}
+                            >
+                                {item.completed ? (
+                                    <CheckSquare className="w-4 h-4 text-emerald-400 shrink-0" />
+                                ) : (
+                                    <Square className="w-4 h-4 text-slate-400 shrink-0" />
+                                )}
+                                <span className={cn(
+                                    "text-sm flex-1",
+                                    item.completed ? "line-through text-muted-foreground" : "text-foreground"
+                                )}>
+                                    {item.text}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </motion.div>
 
             {/* Edit Modal */}
