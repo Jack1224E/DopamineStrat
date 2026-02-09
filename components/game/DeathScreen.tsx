@@ -2,12 +2,12 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
-import { Skull, RotateCcw, Flame } from 'lucide-react';
+import { Skull, RotateCcw, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export function DeathScreen() {
-    const { isDowned, deathCount, xpLostTotal, unbankedXp, revive } = useGameStore();
+    const { isDowned, deathCount, soulsLostTotal, souls, revive } = useGameStore();
 
     return (
         <AnimatePresence>
@@ -64,14 +64,14 @@ export function DeathScreen() {
                                     <span className="text-lg">Deaths: <span className="text-white font-bold">{deathCount}</span></span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Flame className="w-5 h-5 text-amber-400" />
-                                    <span className="text-lg">XP Lost: <span className="text-red-400 font-bold">{xpLostTotal}</span></span>
+                                    <Coins className="w-5 h-5 text-cyan-400" />
+                                    <span className="text-lg">Souls Lost: <span className="text-red-400 font-bold">{soulsLostTotal}</span></span>
                                 </div>
                             </div>
 
-                            {unbankedXp > 0 && (
-                                <p className="text-amber-400/80 text-sm italic">
-                                    ⚠️ {unbankedXp} unbanked XP at risk until you recover
+                            {souls > 0 && (
+                                <p className="text-cyan-400/80 text-sm italic">
+                                    ⚠️ {souls} Souls remaining (50% was lost)
                                 </p>
                             )}
                         </motion.div>

@@ -3,12 +3,13 @@
 import { motion } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
 import { cn } from '@/lib/utils';
+import { FLASK_CONFIG } from '@/types/categories';
 
 export function FlaskCounter() {
-    const { flasks, useFlask, isDowned } = useGameStore();
+    const { flasks, maxFlasks, useFlask, isDowned } = useGameStore();
 
     const handleUseFlask = () => {
-        if (flasks.current > 0 && !isDowned) {
+        if (flasks > 0 && !isDowned) {
             useFlask();
         }
     };
@@ -16,8 +17,8 @@ export function FlaskCounter() {
     return (
         <div className="flex items-center gap-1">
             {/* Flask bottles */}
-            {Array.from({ length: flasks.max }).map((_, index) => {
-                const isFilled = index < flasks.current;
+            {Array.from({ length: maxFlasks }).map((_, index) => {
+                const isFilled = index < flasks;
                 const canUse = isFilled && !isDowned;
 
                 return (
@@ -37,7 +38,7 @@ export function FlaskCounter() {
                                 ? "border-amber-500/50 bg-slate-800"
                                 : "border-slate-600 bg-slate-900"
                         )}
-                        title={canUse ? `Use Flask (+${flasks.healAmount} HP)` : isFilled ? "Cannot use while downed" : "Empty"}
+                        title={canUse ? `Use Flask (+${FLASK_CONFIG.healAmount} HP)` : isFilled ? "Cannot use while downed" : "Empty"}
                     >
                         {/* Flask neck */}
                         <div className={cn(
@@ -71,7 +72,7 @@ export function FlaskCounter() {
 
             {/* Heal amount label */}
             <div className="ml-2 text-xs text-slate-400">
-                <span className="text-amber-400 font-bold">+{flasks.healAmount}</span> HP
+                <span className="text-amber-400 font-bold">+{FLASK_CONFIG.healAmount}</span> HP
             </div>
         </div>
     );

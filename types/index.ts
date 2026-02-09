@@ -1,3 +1,5 @@
+import type { TaskCategory } from './categories';
+
 /** Task type definitions */
 export type TaskType = 'habit' | 'daily' | 'todo';
 
@@ -6,8 +8,10 @@ export interface Task {
     title: string;
     description?: string;
     type: TaskType;
-    xpReward: number;
-    hpPenalty: number;
+    category: TaskCategory;     // NEW: productivity, sports, fitness, etc.
+    baseSouls: number;          // Base Souls reward
+    baseXp: number;             // Base XP reward
+    hpStake: number;            // HP cost to attempt
     completed?: boolean;
 }
 

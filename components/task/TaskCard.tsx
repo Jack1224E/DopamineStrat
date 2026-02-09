@@ -2,12 +2,14 @@
 
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Check, X, Plus, Minus } from 'lucide-react';
+import { Check, X, Plus, Minus, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/store/gameStore';
 import { playSuccessSound } from '@/lib/sounds';
 import { useState } from 'react';
 import type { Task } from '@/types';
+import { CATEGORY_INFO } from '@/types/categories';
+import { cn } from '@/lib/utils';
 
 interface TaskCardProps {
     task: Task;
@@ -15,14 +17,16 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, compact = false }: TaskCardProps) {
-    const { gainXp, loseHp, soundEnabled, completeTask } = useGameStore();
+    const { soundEnabled, completeTask, failTask } = useGameStore();
     const [isCompleted, setIsCompleted] = useState(false);
 
+    const categoryInfo = CATEGORY_INFO[task.category];
+
     const handlePositive = () => {
-        gainXp(task.xpReward);
+        completeTask(task.type, task.id);
         playSuccessSound(soundEnabled);
 
-        // Fire confetti for non-habits or first habit completion
+        // Fire confetti
         const rect = document.getElementById(`task-${task.id}`)?.getBoundingClientRect();
         if (rect) {
             const x = (rect.left + rect.width / 2) / window.innerWidth;
@@ -41,17 +45,11 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
         // For todos/dailies, mark as completed
         if (task.type !== 'habit') {
             setIsCompleted(true);
-            if (task.type === 'todo') {
-                // Remove todo after animation
-                setTimeout(() => {
-                    completeTask(task.type, task.id);
-                }, 500);
-            }
         }
     };
 
     const handleNegative = () => {
-        loseHp(task.hpPenalty);
+        failTask(task.type, task.id);
     };
 
     // Compact layout for column view (Habitica-style)
@@ -67,11 +65,16 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ duration: 0.2 }}
-                className={`
-          relative flex items-center gap-2 p-3 rounded-md bg-background border border-border
-          hover:bg-muted/50 transition-colors
-        `}
+                className={cn(
+                    "relative flex items-center gap-2 p-3 rounded-md bg-background border border-border",
+                    "hover:bg-muted/50 transition-colors"
+                )}
             >
+                {/* Category emoji */}
+                <span className="text-sm" title={categoryInfo.label}>
+                    {categoryInfo.emoji}
+                </span>
+
                 {/* Plus/Minus buttons for habits, Check for others */}
                 {task.type === 'habit' ? (
                     <>
@@ -86,6 +89,10 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate text-foreground">
                                 {task.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Coins className="w-3 h-3 text-cyan-400" />
+                                <span className="text-cyan-400">{task.baseSouls}</span>
                             </p>
                         </div>
                         <Button
@@ -104,16 +111,25 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                             variant="ghost"
                             onClick={handlePositive}
                             disabled={isCompleted}
-                            className={`h-8 w-8 p-0 shrink-0 rounded-sm border-2 transition-all ${isCompleted
+                            className={cn(
+                                "h-8 w-8 p-0 shrink-0 rounded-sm border-2 transition-all",
+                                isCompleted
                                     ? 'bg-success border-success text-success-foreground'
                                     : 'border-muted-foreground/30 hover:border-success hover:bg-success/10'
-                                }`}
+                            )}
                         >
                             {isCompleted && <Check className="w-4 h-4" />}
                         </Button>
                         <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-medium truncate ${isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                            <p className={cn(
+                                "text-sm font-medium truncate",
+                                isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'
+                            )}>
                                 {task.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Coins className="w-3 h-3 text-cyan-400" />
+                                <span className="text-cyan-400">{task.baseSouls}</span>
                             </p>
                         </div>
                     </>
@@ -127,12 +143,6 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
         habit: 'border-l-primary',
         daily: 'border-l-accent',
         todo: 'border-l-success',
-    };
-
-    const typeLabels = {
-        habit: 'Habit',
-        daily: 'Daily',
-        todo: 'To-Do',
     };
 
     return (
@@ -149,21 +159,28 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                 duration: 0.3,
                 scale: { duration: 0.3, times: [0, 0.5, 1] }
             }}
-            className={`
-        relative p-4 rounded-lg border-l-4 bg-card border border-border
-        shadow-sm hover:shadow-md transition-shadow
-        ${typeColors[task.type]}
-        ${isCompleted ? 'pointer-events-none' : ''}
-      `}
+            className={cn(
+                "relative p-4 rounded-lg border-l-4 bg-card border border-border",
+                "shadow-sm hover:shadow-md transition-shadow",
+                typeColors[task.type],
+                isCompleted && 'pointer-events-none'
+            )}
         >
-            {/* Type badge */}
-            <span className="absolute top-2 right-2 px-2 py-0.5 text-xs rounded-full bg-muted text-muted-foreground">
-                {typeLabels[task.type]}
+            {/* Category badge */}
+            <span className={cn(
+                "absolute top-2 right-2 px-2 py-0.5 text-xs rounded-full",
+                "bg-muted flex items-center gap-1"
+            )}>
+                <span>{categoryInfo.emoji}</span>
+                <span className={categoryInfo.color}>{categoryInfo.label}</span>
             </span>
 
             {/* Content */}
-            <div className="pr-16">
-                <h3 className={`font-semibold text-foreground ${isCompleted ? 'line-through' : ''}`}>
+            <div className="pr-24">
+                <h3 className={cn(
+                    "font-semibold text-foreground",
+                    isCompleted && 'line-through'
+                )}>
                     {task.title}
                 </h3>
                 {task.description && (
@@ -176,11 +193,15 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
             {/* Stats and actions */}
             <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-4 text-sm">
-                    <span className="flex items-center gap-1 text-success">
-                        +{task.xpReward} XP
+                    <span className="flex items-center gap-1 text-cyan-400">
+                        <Coins className="w-4 h-4" />
+                        +{task.baseSouls}
+                    </span>
+                    <span className="flex items-center gap-1 text-amber-400">
+                        +{task.baseXp} XP
                     </span>
                     <span className="flex items-center gap-1 text-destructive">
-                        -{task.hpPenalty} HP
+                        -{task.hpStake} HP
                     </span>
                 </div>
 
