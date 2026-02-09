@@ -16,6 +16,14 @@ export interface ChecklistItem {
     completed: boolean;
 }
 
+/** Reward item */
+export interface Reward {
+    id: string;
+    title: string;
+    cost: number;
+    notes?: string;
+}
+
 export interface Task {
     id: string;
     title: string;

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { StatsBar } from '@/components/layout/StatsBar';
 import { TaskColumn } from '@/components/task/TaskColumn';
+import { RewardColumn } from '@/components/game/RewardColumn';
 import { DeathScreen } from '@/components/game/DeathScreen';
 import { useGameStore } from '@/store/gameStore';
 import { BookOpen, History as HistoryIcon } from 'lucide-react';
@@ -50,7 +51,7 @@ export default function TodayPage() {
 
                 {/* Task Columns - Horizontal Layout */}
                 <main className="container mx-auto px-4 py-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-start">
                         <TaskColumn
                             title="Habits"
                             tasks={habits}
@@ -71,6 +72,8 @@ export default function TodayPage() {
                             type="todo"
                             placeholder="Add a To Do"
                         />
+
+                        <RewardColumn />
                     </div>
                 </main>
             </div>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Task, TaskType } from '@/types';
+import type { Task, TaskType, Reward } from '@/types';
 import {
     type TaskCategory,
     type ShopItemId,
@@ -84,6 +84,7 @@ interface GameState {
     habits: Task[];
     dailies: Task[];
     todos: Task[];
+    rewards: Reward[];
 
     // History log
     history: HistoryEntry[];
@@ -116,6 +117,12 @@ interface GameState {
     completeTask: (type: TaskType, taskId: string) => void;
     failTask: (type: TaskType, taskId: string) => void;
     deleteTask: (type: TaskType, taskId: string) => void;
+
+    // Reward actions
+    addReward: (title: string, cost: number, notes?: string) => void;
+    updateReward: (rewardId: string, updates: Partial<Reward>) => void;
+    deleteReward: (rewardId: string) => void;
+    buyReward: (rewardId: string) => void;
 }
 
 // XP required for each level
@@ -252,6 +259,16 @@ const INITIAL_STATE = {
 
     // History
     history: [] as HistoryEntry[],
+
+    // Rewards
+    rewards: [
+        {
+            id: 'reward-1',
+            title: 'Play Mobile Game (30m)',
+            cost: 100,
+            notes: 'Enjoy some guilt-free gaming time!',
+        }
+    ],
 
     ...INITIAL_TASKS,
 };
@@ -687,9 +704,56 @@ export const useGameStore = create<GameState>()(
                     state.completeTask(type, taskId);
                 }
             },
+
+            // Reward Actions
+            addReward: (title: string, cost: number, notes?: string) => {
+                const newReward: Reward = {
+                    id: `reward-${Date.now()}`,
+                    title,
+                    cost,
+                    notes
+                };
+                set((state) => ({ rewards: [...state.rewards, newReward] }));
+            },
+
+            updateReward: (rewardId: string, updates: Partial<Reward>) => {
+                set((state) => ({
+                    rewards: state.rewards.map(r => r.id === rewardId ? { ...r, ...updates } : r)
+                }));
+            },
+
+            deleteReward: (rewardId: string) => {
+                set((state) => ({
+                    rewards: state.rewards.filter(r => r.id !== rewardId)
+                }));
+            },
+
+            buyReward: (rewardId: string) => {
+                const state = get();
+                const reward = state.rewards.find(r => r.id === rewardId);
+
+                if (reward && state.souls >= reward.cost) {
+                    // Deduct souls
+                    state.spendSouls(reward.cost);
+
+                    // Add to history
+                    const historyEntry: HistoryEntry = {
+                        id: `hist-${Date.now()}`,
+                        taskId: reward.id,
+                        taskTitle: `Reward: ${reward.title}`,
+                        taskType: 'todo', // Using 'todo' as closest type for history filter
+                        category: 'self_care' as TaskCategory, // Rewards are self-care
+                        action: 'completed',
+                        soulsEarned: -reward.cost, // Negative earning to show cost? Or just 0? Maybe negative is better
+                        timestamp: new Date().toISOString(),
+                    };
+                    set((s) => ({ history: [...s.history, historyEntry] }));
+                }
+            }
         }),
         {
             name: 'dopamine-strategy-game',
+
             version: 3, // Bumped for v3 migration
             migrate: (persistedState: unknown, version: number) => {
                 const state = persistedState as Record<string, unknown>;
