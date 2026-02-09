@@ -136,9 +136,9 @@ export function getAttributeLevel(categoryXp: number): number {
 }
 
 // Calculate XP multiplier from attribute level
-// Formula: 1 + (level * 0.1) = 10% bonus per level
+// Formula: 1 + level (level 0 = 1x, level 1 = 2x, level 2 = 3x, etc.)
 export function getXpMultiplier(attributeLevel: number): number {
-    return 1 + (attributeLevel * 0.1);
+    return 1 + attributeLevel;
 }
 
 // Calculate bonus multiplier from attribute level (for Souls)
