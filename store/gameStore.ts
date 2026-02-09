@@ -811,6 +811,23 @@ export const useGameStore = create<GameState>()(
                         };
                     }
                     if (state.lastCategory === undefined) state.lastCategory = null;
+
+                    // Add rewards if missing
+                    if (!state.rewards) {
+                        state.rewards = [
+                            {
+                                id: 'reward-1',
+                                title: 'Play Mobile Game (30m)',
+                                cost: 100,
+                                notes: 'Enjoy some guilt-free gaming time!',
+                            }
+                        ];
+                    }
+
+                    // Add history if missing
+                    if (!state.history) {
+                        state.history = [];
+                    }
                 }
 
                 return state as unknown as GameState;
