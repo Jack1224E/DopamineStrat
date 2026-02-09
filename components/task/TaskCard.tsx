@@ -20,7 +20,9 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
     const { soundEnabled, completeTask, failTask } = useGameStore();
     const [isCompleted, setIsCompleted] = useState(false);
 
-    const categoryInfo = CATEGORY_INFO[task.category];
+    // Fallback for tasks without category (legacy data)
+    const category = task.category || 'productivity';
+    const categoryInfo = CATEGORY_INFO[category];
 
     const handlePositive = () => {
         completeTask(task.type, task.id);
@@ -92,7 +94,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                             </p>
                             <p className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Coins className="w-3 h-3 text-cyan-400" />
-                                <span className="text-cyan-400">{task.baseSouls}</span>
+                                <span className="text-cyan-400">{task.baseSouls || 5}</span>
                             </p>
                         </div>
                         <Button
@@ -129,7 +131,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                             </p>
                             <p className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Coins className="w-3 h-3 text-cyan-400" />
-                                <span className="text-cyan-400">{task.baseSouls}</span>
+                                <span className="text-cyan-400">{task.baseSouls || 5}</span>
                             </p>
                         </div>
                     </>
@@ -195,13 +197,13 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                 <div className="flex items-center gap-4 text-sm">
                     <span className="flex items-center gap-1 text-cyan-400">
                         <Coins className="w-4 h-4" />
-                        +{task.baseSouls}
+                        +{task.baseSouls || 5}
                     </span>
                     <span className="flex items-center gap-1 text-amber-400">
-                        +{task.baseXp} XP
+                        +{task.baseXp || 2} XP
                     </span>
                     <span className="flex items-center gap-1 text-destructive">
-                        -{task.hpStake} HP
+                        -{task.hpStake || 1} HP
                     </span>
                 </div>
 
