@@ -246,7 +246,7 @@ export const SHOP_ITEMS: Record<ShopItemId, ShopItem> = {
 
 // Flask constants (simplified)
 export const FLASK_CONFIG = {
-    maxFlasks: 3,           // Max flasks player can have
+    maxFlasks: 1,           // Start with 1 slot, upgradable later
     healAmount: 25,         // HP healed per flask
     flaskCost: 100,         // Souls cost to buy a flask
 } as const;
