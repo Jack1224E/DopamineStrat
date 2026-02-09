@@ -343,7 +343,7 @@ export const useGameStore = create<GameState>()(
 
             recoverHp: (amount: number) => {
                 const state = get();
-                const maxHp = state.getMaxHp();
+                const maxHp = state.getMaxHp();  // This already includes hollowing reduction
                 set({
                     hp: Math.min(maxHp, state.hp + amount),
                 });
@@ -352,11 +352,11 @@ export const useGameStore = create<GameState>()(
             useFlask: () => {
                 const state = get();
                 if (state.flasks <= 0 || state.isDowned) return false;
-                const maxHp = state.getMaxHp();
+                const maxHp = state.getMaxHp();  // Hollowing cap enforced
 
                 set({
                     flasks: state.flasks - 1,
-                    hp: Math.min(maxHp, state.hp + FLASK_CONFIG.healAmount),
+                    hp: Math.min(maxHp, state.hp + FLASK_CONFIG.healAmount),  // Cannot exceed hollowed max
                 });
                 return true;
             },
@@ -520,14 +520,12 @@ export const useGameStore = create<GameState>()(
                     const soulsReward = calculateSoulsReward(baseSouls, attributeLevel, streakCount);
 
                     // XP formula: 1 + attributeLevel
-                    // At level 0: 1 XP, at level 1: 2 XP, at level 2: 3 XP, etc.
                     const xpGained = 1 + attributeLevel;
 
-                    // Apply rewards
+                    // Apply rewards (NO HP RECOVERY - only Souls and XP)
                     state.gainSouls(soulsReward);
-                    state.gainXp(xpGained);                    // Global XP = 1 + level
-                    state.incrementCategoryCounter(category);  // Category counter += 1 (always)
-                    state.recoverHp(Math.ceil((task.hpStake || BASE_REWARDS[type].hpStake) * 0.5));
+                    state.gainXp(xpGained);
+                    state.incrementCategoryCounter(category);
 
                     // Update category streak
                     state.updateCategoryStreak(category);
