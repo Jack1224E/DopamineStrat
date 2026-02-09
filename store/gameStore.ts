@@ -411,6 +411,47 @@ export const useGameStore = create<GameState>()(
         }),
         {
             name: 'dopamine-strategy-game',
+            version: 2, // Bumped version for migration
+            migrate: (persistedState: unknown, version: number) => {
+                const state = persistedState as Record<string, unknown>;
+
+                // Migration from v1 (or no version) to v2
+                if (version < 2) {
+                    // Handle old flasks object format
+                    if (state.flasks && typeof state.flasks === 'object') {
+                        const oldFlasks = state.flasks as { current?: number; max?: number };
+                        state.flasks = oldFlasks.current ?? 1;
+                        state.maxFlasks = oldFlasks.max ?? 1;
+                    }
+
+                    // Add missing new fields with defaults
+                    if (state.souls === undefined) state.souls = 0;
+                    if (state.soulsLostTotal === undefined) state.soulsLostTotal = 0;
+                    if (state.attributes === undefined) {
+                        state.attributes = {
+                            intelligence: 1,
+                            endurance: 1,
+                            strength: 1,
+                            vitality: 1,
+                            insight: 1,
+                            charisma: 1,
+                        };
+                    }
+                    if (state.categoryStreak === undefined) {
+                        state.categoryStreak = {
+                            productivity: 0,
+                            sports: 0,
+                            fitness: 0,
+                            self_care: 0,
+                            creativity: 0,
+                            social: 0,
+                        };
+                    }
+                    if (state.lastCategory === undefined) state.lastCategory = null;
+                }
+
+                return state as unknown as GameState;
+            },
         }
     )
 );
