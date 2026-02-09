@@ -72,7 +72,7 @@ interface GameState {
     getAttributeLevel: (category: TaskCategory) => number;
 
     // Actions
-    gainXp: (amount: number, category?: TaskCategory) => void;
+    gainXp: (globalXp: number, category?: TaskCategory, categoryXpAmount?: number) => void;
     gainSouls: (amount: number) => void;
     spendSouls: (amount: number) => boolean;
     loseHp: (amount: number) => void;
@@ -241,11 +241,12 @@ export const useGameStore = create<GameState>()(
                 return getAttributeLevel(state.categoryXp[category]);
             },
 
-            gainXp: (amount: number, category?: TaskCategory) => {
+            // gainXp: globalXp is the boosted XP for leveling, categoryXpAmount is the BASE XP for attribute tracking
+            gainXp: (globalXpAmount: number, category?: TaskCategory, categoryXpAmount?: number) => {
                 const state = get();
                 // Downed players gain 50% less XP
-                const effectiveAmount = state.isDowned ? Math.floor(amount * 0.5) : amount;
-                let newXp = state.xp + effectiveAmount;
+                const effectiveGlobalXp = state.isDowned ? Math.floor(globalXpAmount * 0.5) : globalXpAmount;
+                let newXp = state.xp + effectiveGlobalXp;
                 let newLevel = state.level;
                 let newXpToLevel = state.xpToLevel;
 
@@ -256,10 +257,11 @@ export const useGameStore = create<GameState>()(
                     newXpToLevel = getXpToLevel(newLevel);
                 }
 
-                // Also add to category XP bucket if category provided
+                // Add BASE XP to category bucket (not boosted) for attribute leveling
                 const newCategoryXp = { ...state.categoryXp };
-                if (category) {
-                    newCategoryXp[category] += effectiveAmount;
+                if (category && categoryXpAmount !== undefined) {
+                    const effectiveCategoryXp = state.isDowned ? Math.floor(categoryXpAmount * 0.5) : categoryXpAmount;
+                    newCategoryXp[category] += effectiveCategoryXp;
                 }
 
                 set({
@@ -508,21 +510,20 @@ export const useGameStore = create<GameState>()(
                     const attributeLevel = getAttributeLevel(state.categoryXp[category]);
                     const streakCount = state.categoryStreak[category];
 
-                    // Calculate rewards with attribute bonus and streak penalty
-                    const soulsReward = calculateSoulsReward(
-                        task.baseSouls || BASE_REWARDS[type].souls,
-                        attributeLevel,
-                        streakCount
-                    );
-                    const xpReward = calculateXpReward(
-                        task.baseXp || BASE_REWARDS[type].xp,
-                        attributeLevel,
-                        streakCount
-                    );
+                    // Get base values
+                    const baseSouls = task.baseSouls || BASE_REWARDS[type].souls;
+                    const baseXp = task.baseXp || BASE_REWARDS[type].xp;
 
-                    // Apply rewards (XP goes to both global and category bucket)
+                    // Calculate BOOSTED rewards for global XP (with multiplier)
+                    const soulsReward = calculateSoulsReward(baseSouls, attributeLevel, streakCount);
+                    const boostedXpReward = calculateXpReward(baseXp, attributeLevel, streakCount);
+
+                    // Apply rewards:
+                    // - Souls: boosted amount
+                    // - Global XP: boosted amount (for player leveling)
+                    // - Category XP: BASE amount only (for attribute leveling)
                     state.gainSouls(soulsReward);
-                    state.gainXp(xpReward, category);
+                    state.gainXp(boostedXpReward, category, baseXp);
                     state.recoverHp(Math.ceil((task.hpStake || BASE_REWARDS[type].hpStake) * 0.5));
 
                     // Update category streak
