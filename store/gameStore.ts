@@ -6,14 +6,20 @@ import {
     type ShopItemId,
     CATEGORY_ATTRIBUTE_MAP,
     DEFAULT_CATEGORY_XP,
-    calculateSoulsReward,
-    calculateXpReward,
     getAttributeLevel,
     BASE_REWARDS,
     FLASK_CONFIG,
     HOLLOW_CONFIG,
     SHOP_ITEMS,
 } from '@/types/categories';
+
+// Souls reward function - takes taskId, returns souls
+// For now returns fixed value, later will be driven by LLM judge
+export function getSoulsReward(taskId: string): number {
+    // TODO: Integrate LLM judge here
+    // For now, return a fixed value of 5 souls per task
+    return 5;
+}
 
 interface Inventory {
     estus_flask: number;
