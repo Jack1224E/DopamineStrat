@@ -17,8 +17,8 @@ interface StakeModalProps {
 export function StakeModal({ task, isOpen, onClose, onConfirm }: StakeModalProps) {
     const { hp, isDowned } = useGameStore();
 
-    const canAttempt = hp >= task.hpPenalty && !isDowned;
-    const isRisky = task.hpPenalty >= hp * 0.5;
+    const canAttempt = hp >= task.hpStake && !isDowned;
+    const isRisky = task.hpStake >= hp * 0.5;
 
     return (
         <AnimatePresence>
@@ -72,8 +72,8 @@ export function StakeModal({ task, isOpen, onClose, onConfirm }: StakeModalProps
                                 <h3 className="font-semibold text-white text-lg mb-2">
                                     {task.title}
                                 </h3>
-                                {task.description && (
-                                    <p className="text-slate-400 text-sm">{task.description}</p>
+                                {task.notes && (
+                                    <p className="text-slate-400 text-sm">{task.notes}</p>
                                 )}
                             </div>
                         </div>
@@ -98,7 +98,7 @@ export function StakeModal({ task, isOpen, onClose, onConfirm }: StakeModalProps
                                     "text-2xl font-bold",
                                     isRisky ? "text-red-400" : "text-red-400"
                                 )}>
-                                    -{task.hpPenalty} HP
+                                    -{task.hpStake} HP
                                 </div>
                             </div>
 
@@ -109,7 +109,7 @@ export function StakeModal({ task, isOpen, onClose, onConfirm }: StakeModalProps
                                     <span className="text-sm text-slate-400">Reward</span>
                                 </div>
                                 <div className="text-2xl font-bold text-amber-400">
-                                    +{task.xpReward} XP
+                                    +{task.baseSouls} Souls
                                 </div>
                             </div>
                         </div>
@@ -131,7 +131,7 @@ export function StakeModal({ task, isOpen, onClose, onConfirm }: StakeModalProps
                                 <span className="text-slate-400 text-sm">
                                     {isDowned
                                         ? "Cannot attempt while downed. Complete a Recovery Run first."
-                                        : `Not enough HP. You need ${task.hpPenalty} HP but only have ${hp}.`
+                                        : `Not enough HP. You need ${task.hpStake} HP but only have ${hp}.`
                                     }
                                 </span>
                             </div>

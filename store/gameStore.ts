@@ -96,6 +96,7 @@ interface GameState {
 
     // Task actions
     addTask: (type: TaskType, title: string, category?: TaskCategory, isCritical?: boolean) => void;
+    updateTask: (type: TaskType, taskId: string, updates: Partial<Task>) => void;
     completeTask: (type: TaskType, taskId: string) => void;
     failTask: (type: TaskType, taskId: string) => void;
     deleteTask: (type: TaskType, taskId: string) => void;
@@ -116,6 +117,7 @@ const INITIAL_TASKS = {
             title: 'Drink Water',
             type: 'habit' as TaskType,
             category: 'self_care' as TaskCategory,
+            difficulty: 'easy' as const,
             baseSouls: BASE_REWARDS.habit.souls,
             baseXp: BASE_REWARDS.habit.xp,
             hpStake: BASE_REWARDS.habit.hpStake,
@@ -126,6 +128,7 @@ const INITIAL_TASKS = {
             title: 'Read for 15 minutes',
             type: 'habit' as TaskType,
             category: 'productivity' as TaskCategory,
+            difficulty: 'easy' as const,
             baseSouls: BASE_REWARDS.habit.souls,
             baseXp: BASE_REWARDS.habit.xp,
             hpStake: BASE_REWARDS.habit.hpStake,
@@ -138,6 +141,7 @@ const INITIAL_TASKS = {
             title: 'Morning Exercise',
             type: 'daily' as TaskType,
             category: 'fitness' as TaskCategory,
+            difficulty: 'medium' as const,
             baseSouls: BASE_REWARDS.daily.souls,
             baseXp: BASE_REWARDS.daily.xp,
             hpStake: BASE_REWARDS.daily.hpStake,
@@ -148,6 +152,7 @@ const INITIAL_TASKS = {
             title: 'Review Goals',
             type: 'daily' as TaskType,
             category: 'productivity' as TaskCategory,
+            difficulty: 'easy' as const,
             baseSouls: BASE_REWARDS.daily.souls,
             baseXp: BASE_REWARDS.daily.xp,
             hpStake: BASE_REWARDS.daily.hpStake,
@@ -160,6 +165,7 @@ const INITIAL_TASKS = {
             title: 'Complete project setup',
             type: 'todo' as TaskType,
             category: 'productivity' as TaskCategory,
+            difficulty: 'medium' as const,
             baseSouls: BASE_REWARDS.todo.souls,
             baseXp: BASE_REWARDS.todo.xp,
             hpStake: BASE_REWARDS.todo.hpStake,
@@ -170,6 +176,7 @@ const INITIAL_TASKS = {
             title: 'Go for a run',
             type: 'todo' as TaskType,
             category: 'sports' as TaskCategory,
+            difficulty: 'medium' as const,
             baseSouls: BASE_REWARDS.todo.souls,
             baseXp: BASE_REWARDS.todo.xp,
             hpStake: BASE_REWARDS.todo.hpStake,
@@ -496,6 +503,7 @@ export const useGameStore = create<GameState>()(
                     title,
                     type,
                     category,
+                    difficulty: 'easy',
                     baseSouls: BASE_REWARDS[type].souls,
                     baseXp: BASE_REWARDS[type].xp,
                     hpStake: BASE_REWARDS[type].hpStake,
@@ -593,6 +601,21 @@ export const useGameStore = create<GameState>()(
                         return { dailies: state.dailies.filter((t) => t.id !== taskId) };
                     } else {
                         return { todos: state.todos.filter((t) => t.id !== taskId) };
+                    }
+                });
+            },
+
+            updateTask: (type: TaskType, taskId: string, updates: Partial<Task>) => {
+                set((state) => {
+                    const updateFn = (tasks: Task[]) =>
+                        tasks.map((t) => (t.id === taskId ? { ...t, ...updates } : t));
+
+                    if (type === 'habit') {
+                        return { habits: updateFn(state.habits) };
+                    } else if (type === 'daily') {
+                        return { dailies: updateFn(state.dailies) };
+                    } else {
+                        return { todos: updateFn(state.todos) };
                     }
                 });
             },
