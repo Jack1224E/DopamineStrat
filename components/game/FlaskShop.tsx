@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
-import { Coins, X, Heart, ShoppingBag, Package, Sparkles, Shield } from 'lucide-react';
+import { Coins, X, ShoppingBag, Sparkles, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { SHOP_ITEMS, type ShopItemId } from '@/types/categories';
@@ -20,35 +20,37 @@ const ITEM_ICONS: Record<ShopItemId, React.ReactNode> = {
 };
 
 export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
-    const { souls, inventory, activeBuffs, hollowLevel, buyItem, useItem } = useGameStore();
+    const {
+        souls, inventory, activeBuffs, hollowLevel,
+        flasks, maxFlasks, buyItem, useItem
+    } = useGameStore();
 
-    const items = Object.values(SHOP_ITEMS);
+    // Filter out estus_flask from regular items (it's handled separately)
+    const regularItems = Object.values(SHOP_ITEMS).filter(item => item.id !== 'estus_flask');
+    const flaskItem = SHOP_ITEMS.estus_flask;
 
     const handleBuy = (itemId: ShopItemId) => {
-        if (buyItem(itemId)) {
-            // Success feedback could go here
-        }
+        buyItem(itemId);
     };
 
     const handleUse = (itemId: ShopItemId) => {
-        if (useItem(itemId)) {
-            // Success feedback could go here
-        }
+        useItem(itemId);
     };
 
-    const canBuy = (itemId: ShopItemId) => {
+    const canBuyFlask = () => {
+        return souls >= flaskItem.cost && flasks < maxFlasks;
+    };
+
+    const canBuyItem = (itemId: ShopItemId) => {
         const item = SHOP_ITEMS[itemId];
         return souls >= item.cost && inventory[itemId] < item.maxQuantity;
     };
 
     const canUse = (itemId: ShopItemId) => {
         if (inventory[itemId] <= 0) return false;
-
-        // Special conditions
         if (itemId === 'human_effigy' && hollowLevel <= 0) return false;
         if (itemId === 'ring_of_protection' && activeBuffs.ringOfProtection) return false;
         if (itemId === 'golden_pine_resin' && activeBuffs.goldenPineResin) return false;
-
         return true;
     };
 
@@ -95,7 +97,6 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                {/* Souls Display */}
                                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
                                     <Coins className="w-4 h-4 text-cyan-400" />
                                     <span className="font-bold text-cyan-300">{souls}</span>
@@ -135,9 +136,61 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
 
                         {/* Shop Items */}
                         <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
-                            {items.map((item) => {
+                            {/* Estus Flask - Special handling */}
+                            <motion.div
+                                className={cn(
+                                    "p-4 rounded-xl border transition-all",
+                                    "bg-gradient-to-r from-orange-900/20 to-amber-900/20",
+                                    canBuyFlask()
+                                        ? "border-orange-500/50 hover:border-orange-400"
+                                        : "border-slate-700 opacity-70"
+                                )}
+                            >
+                                <div className="flex items-start gap-4">
+                                    <div className={cn(
+                                        "w-12 h-12 rounded-lg flex items-center justify-center",
+                                        "bg-gradient-to-br from-orange-700 to-amber-800",
+                                        "border border-orange-600"
+                                    )}>
+                                        {ITEM_ICONS.estus_flask}
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="font-bold text-white">{flaskItem.name}</h3>
+                                            <span className="px-2 py-0.5 rounded bg-orange-500/30 text-xs text-orange-300">
+                                                {flasks}/{maxFlasks}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-slate-400 mt-0.5">
+                                            {flaskItem.description}
+                                        </p>
+                                        <p className="text-xs text-emerald-400 mt-1">
+                                            ✦ {flaskItem.effect}
+                                        </p>
+                                    </div>
+
+                                    <Button
+                                        size="sm"
+                                        onClick={() => handleBuy('estus_flask')}
+                                        disabled={!canBuyFlask()}
+                                        className={cn(
+                                            "min-w-[100px]",
+                                            canBuyFlask()
+                                                ? "bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500"
+                                                : "bg-slate-700"
+                                        )}
+                                    >
+                                        <Coins className="w-3 h-3 mr-1" />
+                                        {flaskItem.cost}
+                                    </Button>
+                                </div>
+                            </motion.div>
+
+                            {/* Regular Items */}
+                            {regularItems.map((item) => {
                                 const owned = inventory[item.id];
-                                const canBuyThis = canBuy(item.id);
+                                const canBuyThis = canBuyItem(item.id);
                                 const canUseThis = canUse(item.id);
 
                                 return (
@@ -152,7 +205,6 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
                                         )}
                                     >
                                         <div className="flex items-start gap-4">
-                                            {/* Icon */}
                                             <div className={cn(
                                                 "w-12 h-12 rounded-lg flex items-center justify-center",
                                                 "bg-gradient-to-br from-slate-700 to-slate-800",
@@ -161,7 +213,6 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
                                                 {ITEM_ICONS[item.id]}
                                             </div>
 
-                                            {/* Info */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     <h3 className="font-bold text-white">{item.name}</h3>
@@ -179,9 +230,7 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
                                                 </p>
                                             </div>
 
-                                            {/* Actions */}
                                             <div className="flex flex-col gap-2">
-                                                {/* Buy Button */}
                                                 <Button
                                                     size="sm"
                                                     onClick={() => handleBuy(item.id)}
@@ -197,7 +246,6 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
                                                     {item.cost}
                                                 </Button>
 
-                                                {/* Use Button */}
                                                 {owned > 0 && (
                                                     <Button
                                                         size="sm"

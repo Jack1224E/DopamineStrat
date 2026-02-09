@@ -366,8 +366,19 @@ export const useGameStore = create<GameState>()(
                 const item = SHOP_ITEMS[itemId];
                 if (!item) return false;
                 if (state.souls < item.cost) return false;
-                if (state.inventory[itemId] >= item.maxQuantity) return false;
 
+                // Estus Flask goes directly to flask slot
+                if (itemId === 'estus_flask') {
+                    if (state.flasks >= state.maxFlasks) return false;
+                    set({
+                        souls: state.souls - item.cost,
+                        flasks: state.flasks + 1,
+                    });
+                    return true;
+                }
+
+                // Other items go to inventory
+                if (state.inventory[itemId] >= item.maxQuantity) return false;
                 set({
                     souls: state.souls - item.cost,
                     inventory: {
