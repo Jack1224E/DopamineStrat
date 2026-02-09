@@ -9,6 +9,13 @@ export type TaskDifficulty = 'trivial' | 'easy' | 'medium' | 'hard';
 /** Frequency for dailies */
 export type TaskFrequency = 'daily' | 'weekly';
 
+/** Checklist item for subtasks */
+export interface ChecklistItem {
+    id: string;
+    text: string;
+    completed: boolean;
+}
+
 export interface Task {
     id: string;
     title: string;
@@ -20,6 +27,7 @@ export interface Task {
     // Type-specific fields
     dueDate?: string;               // ISO date string (todos only)
     frequency?: TaskFrequency;      // daily/weekly (dailies only)
+    checklist?: ChecklistItem[];    // Subtasks (todos and dailies only)
 
     // Game mechanics
     baseSouls: number;              // Base Souls reward

@@ -5,12 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
 import {
-    X, Calendar, ChevronDown, Trash2,
-    Star, AlertTriangle
+    X, Calendar, ChevronDown, Trash2, Plus, Check, Square, CheckSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { Task, TaskType, TaskDifficulty, TaskFrequency, DIFFICULTY_INFO } from '@/types';
+import type { Task, TaskType, TaskDifficulty, TaskFrequency, ChecklistItem } from '@/types';
 import { CATEGORY_INFO, type TaskCategory } from '@/types/categories';
 
 // Import DayPicker styles
@@ -60,6 +59,8 @@ export function TaskEditModal({
         task.dueDate ? new Date(task.dueDate) : undefined
     );
     const [frequency, setFrequency] = useState<TaskFrequency>(task.frequency || 'daily');
+    const [checklist, setChecklist] = useState<ChecklistItem[]>(task.checklist || []);
+    const [newChecklistItem, setNewChecklistItem] = useState('');
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [showDifficultyDropdown, setShowDifficultyDropdown] = useState(false);
@@ -74,6 +75,8 @@ export function TaskEditModal({
         setDifficulty(task.difficulty || 'easy');
         setDueDate(task.dueDate ? new Date(task.dueDate) : undefined);
         setFrequency(task.frequency || 'daily');
+        setChecklist(task.checklist || []);
+        setNewChecklistItem('');
     }, [task]);
 
     const handleSave = () => {
@@ -84,6 +87,7 @@ export function TaskEditModal({
             difficulty,
             dueDate: dueDate ? dueDate.toISOString() : undefined,
             frequency: taskType === 'daily' ? frequency : undefined,
+            checklist: taskType !== 'habit' && checklist.length > 0 ? checklist : undefined,
         });
         onClose();
     };
@@ -96,6 +100,39 @@ export function TaskEditModal({
             setShowDeleteConfirm(true);
             setTimeout(() => setShowDeleteConfirm(false), 3000);
         }
+    };
+
+    const addChecklistItem = () => {
+        if (newChecklistItem.trim()) {
+            setChecklist([
+                ...checklist,
+                {
+                    id: `cl-${Date.now()}`,
+                    text: newChecklistItem.trim(),
+                    completed: false,
+                },
+            ]);
+            setNewChecklistItem('');
+        }
+    };
+
+    const toggleChecklistItem = (id: string) => {
+        setChecklist(
+            checklist.map((item) =>
+                item.id === id ? { ...item, completed: !item.completed } : item
+            )
+        );
+    };
+
+    const removeChecklistItem = (id: string) => {
+        setChecklist(checklist.filter((item) => item.id !== id));
+    };
+
+    const closeAllDropdowns = () => {
+        setShowDatePicker(false);
+        setShowCategoryDropdown(false);
+        setShowDifficultyDropdown(false);
+        setShowFrequencyDropdown(false);
     };
 
     const selectedCategory = CATEGORY_OPTIONS.find(c => c.value === category);
@@ -117,12 +154,7 @@ export function TaskEditModal({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    onClick={() => {
-                        setShowDatePicker(false);
-                        setShowCategoryDropdown(false);
-                        setShowDifficultyDropdown(false);
-                        setShowFrequencyDropdown(false);
-                    }}
+                    onClick={closeAllDropdowns}
                 >
                     {/* Backdrop */}
                     <motion.div
@@ -213,8 +245,7 @@ export function TaskEditModal({
                                 <label className="block text-sm font-medium text-slate-400 mb-1">
                                     Category
                                 </label>
-                                <button
-                                    type="button"
+                                <div
                                     onClick={() => {
                                         setShowCategoryDropdown(!showCategoryDropdown);
                                         setShowDifficultyDropdown(false);
@@ -222,7 +253,7 @@ export function TaskEditModal({
                                         setShowDatePicker(false);
                                     }}
                                     className={cn(
-                                        "w-full px-3 py-2 rounded-lg flex items-center justify-between",
+                                        "w-full px-3 py-2 rounded-lg flex items-center justify-between cursor-pointer",
                                         "bg-slate-800 border border-slate-600",
                                         "text-white hover:border-slate-500"
                                     )}
@@ -232,7 +263,7 @@ export function TaskEditModal({
                                         <span className={selectedCategory?.color}>{selectedCategory?.label}</span>
                                     </span>
                                     <ChevronDown className="w-4 h-4 text-slate-400" />
-                                </button>
+                                </div>
 
                                 {showCategoryDropdown && (
                                     <motion.div
@@ -241,21 +272,21 @@ export function TaskEditModal({
                                         className="absolute z-20 w-full mt-1 py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl"
                                     >
                                         {CATEGORY_OPTIONS.map((opt) => (
-                                            <button
+                                            <div
                                                 key={opt.value}
                                                 onClick={() => {
                                                     setCategory(opt.value);
                                                     setShowCategoryDropdown(false);
                                                 }}
                                                 className={cn(
-                                                    "w-full px-3 py-2 flex items-center gap-2 text-left",
+                                                    "w-full px-3 py-2 flex items-center gap-2 cursor-pointer",
                                                     "hover:bg-slate-700",
                                                     category === opt.value && "bg-slate-700"
                                                 )}
                                             >
                                                 <span>{opt.emoji}</span>
                                                 <span className={opt.color}>{opt.label}</span>
-                                            </button>
+                                            </div>
                                         ))}
                                     </motion.div>
                                 )}
@@ -266,8 +297,7 @@ export function TaskEditModal({
                                 <label className="block text-sm font-medium text-slate-400 mb-1">
                                     Difficulty
                                 </label>
-                                <button
-                                    type="button"
+                                <div
                                     onClick={() => {
                                         setShowDifficultyDropdown(!showDifficultyDropdown);
                                         setShowCategoryDropdown(false);
@@ -275,7 +305,7 @@ export function TaskEditModal({
                                         setShowDatePicker(false);
                                     }}
                                     className={cn(
-                                        "w-full px-3 py-2 rounded-lg flex items-center justify-between",
+                                        "w-full px-3 py-2 rounded-lg flex items-center justify-between cursor-pointer",
                                         "bg-slate-800 border border-slate-600",
                                         "text-white hover:border-slate-500"
                                     )}
@@ -285,7 +315,7 @@ export function TaskEditModal({
                                         <span>{selectedDifficulty?.label}</span>
                                     </span>
                                     <ChevronDown className="w-4 h-4 text-slate-400" />
-                                </button>
+                                </div>
 
                                 {showDifficultyDropdown && (
                                     <motion.div
@@ -294,21 +324,21 @@ export function TaskEditModal({
                                         className="absolute z-20 w-full mt-1 py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl"
                                     >
                                         {DIFFICULTY_OPTIONS.map((opt) => (
-                                            <button
+                                            <div
                                                 key={opt.value}
                                                 onClick={() => {
                                                     setDifficulty(opt.value);
                                                     setShowDifficultyDropdown(false);
                                                 }}
                                                 className={cn(
-                                                    "w-full px-3 py-2 flex items-center gap-2 text-left",
+                                                    "w-full px-3 py-2 flex items-center gap-2 cursor-pointer",
                                                     "hover:bg-slate-700",
                                                     difficulty === opt.value && "bg-slate-700"
                                                 )}
                                             >
                                                 <span className={opt.color}>{opt.emoji}</span>
                                                 <span className="text-white">{opt.label}</span>
-                                            </button>
+                                            </div>
                                         ))}
                                     </motion.div>
                                 )}
@@ -320,42 +350,39 @@ export function TaskEditModal({
                                     <label className="block text-sm font-medium text-slate-400 mb-1">
                                         Due Date
                                     </label>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowDatePicker(!showDatePicker);
-                                            setShowCategoryDropdown(false);
-                                            setShowDifficultyDropdown(false);
-                                            setShowFrequencyDropdown(false);
-                                        }}
-                                        className={cn(
-                                            "w-full px-3 py-2 rounded-lg flex items-center justify-between",
-                                            "bg-slate-800 border border-slate-600",
-                                            "text-white hover:border-slate-500"
-                                        )}
-                                    >
-                                        <span className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <div
+                                            onClick={() => {
+                                                setShowDatePicker(!showDatePicker);
+                                                setShowCategoryDropdown(false);
+                                                setShowDifficultyDropdown(false);
+                                                setShowFrequencyDropdown(false);
+                                            }}
+                                            className={cn(
+                                                "flex-1 px-3 py-2 rounded-lg flex items-center gap-2 cursor-pointer",
+                                                "bg-slate-800 border border-slate-600",
+                                                "text-white hover:border-slate-500"
+                                            )}
+                                        >
                                             <Calendar className="w-4 h-4 text-slate-400" />
-                                            {dueDate ? format(dueDate, 'PPP') : 'Select date...'}
-                                        </span>
+                                            {dueDate ? format(dueDate, 'MMM d, yyyy') : 'Select date...'}
+                                        </div>
                                         {dueDate && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setDueDate(undefined);
-                                                }}
-                                                className="p-1 hover:bg-slate-700 rounded"
+                                            <div
+                                                onClick={() => setDueDate(undefined)}
+                                                className="p-2 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 cursor-pointer"
                                             >
-                                                <X className="w-3 h-3 text-slate-400" />
-                                            </button>
+                                                <X className="w-4 h-4 text-slate-400" />
+                                            </div>
                                         )}
-                                    </button>
+                                    </div>
 
                                     {showDatePicker && (
                                         <motion.div
                                             initial={{ opacity: 0, y: -10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             className="absolute z-20 mt-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl p-2"
+                                            onClick={(e) => e.stopPropagation()}
                                         >
                                             <DayPicker
                                                 mode="single"
@@ -367,7 +394,7 @@ export function TaskEditModal({
                                                 disabled={{ before: new Date() }}
                                                 className="text-white"
                                                 classNames={{
-                                                    day: 'text-white hover:bg-slate-700 rounded',
+                                                    day: 'text-white hover:bg-slate-700 rounded p-2',
                                                     selected: 'bg-amber-600 text-white',
                                                     today: 'text-amber-400 font-bold',
                                                     disabled: 'text-slate-600',
@@ -387,8 +414,7 @@ export function TaskEditModal({
                                     <label className="block text-sm font-medium text-slate-400 mb-1">
                                         Frequency
                                     </label>
-                                    <button
-                                        type="button"
+                                    <div
                                         onClick={() => {
                                             setShowFrequencyDropdown(!showFrequencyDropdown);
                                             setShowCategoryDropdown(false);
@@ -396,14 +422,14 @@ export function TaskEditModal({
                                             setShowDatePicker(false);
                                         }}
                                         className={cn(
-                                            "w-full px-3 py-2 rounded-lg flex items-center justify-between",
+                                            "w-full px-3 py-2 rounded-lg flex items-center justify-between cursor-pointer",
                                             "bg-slate-800 border border-slate-600",
                                             "text-white hover:border-slate-500"
                                         )}
                                     >
                                         <span>{FREQUENCY_OPTIONS.find(f => f.value === frequency)?.label}</span>
                                         <ChevronDown className="w-4 h-4 text-slate-400" />
-                                    </button>
+                                    </div>
 
                                     {showFrequencyDropdown && (
                                         <motion.div
@@ -412,23 +438,102 @@ export function TaskEditModal({
                                             className="absolute z-20 w-full mt-1 py-1 rounded-lg bg-slate-800 border border-slate-600 shadow-xl"
                                         >
                                             {FREQUENCY_OPTIONS.map((opt) => (
-                                                <button
+                                                <div
                                                     key={opt.value}
                                                     onClick={() => {
                                                         setFrequency(opt.value);
                                                         setShowFrequencyDropdown(false);
                                                     }}
                                                     className={cn(
-                                                        "w-full px-3 py-2 text-left text-white",
+                                                        "w-full px-3 py-2 cursor-pointer text-white",
                                                         "hover:bg-slate-700",
                                                         frequency === opt.value && "bg-slate-700"
                                                     )}
                                                 >
                                                     {opt.label}
-                                                </button>
+                                                </div>
                                             ))}
                                         </motion.div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* Checklist (Dailies and Todos only) */}
+                            {taskType !== 'habit' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">
+                                        Checklist
+                                    </label>
+
+                                    {/* Existing items */}
+                                    {checklist.length > 0 && (
+                                        <div className="space-y-2 mb-3">
+                                            {checklist.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50 border border-slate-700"
+                                                >
+                                                    <div
+                                                        onClick={() => toggleChecklistItem(item.id)}
+                                                        className="cursor-pointer"
+                                                    >
+                                                        {item.completed ? (
+                                                            <CheckSquare className="w-5 h-5 text-emerald-400" />
+                                                        ) : (
+                                                            <Square className="w-5 h-5 text-slate-400" />
+                                                        )}
+                                                    </div>
+                                                    <span
+                                                        className={cn(
+                                                            "flex-1 text-sm",
+                                                            item.completed
+                                                                ? "line-through text-slate-500"
+                                                                : "text-white"
+                                                        )}
+                                                    >
+                                                        {item.text}
+                                                    </span>
+                                                    <div
+                                                        onClick={() => removeChecklistItem(item.id)}
+                                                        className="p-1 rounded hover:bg-slate-700 cursor-pointer"
+                                                    >
+                                                        <X className="w-4 h-4 text-slate-400" />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Add new item */}
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="text"
+                                            value={newChecklistItem}
+                                            onChange={(e) => setNewChecklistItem(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addChecklistItem();
+                                                }
+                                            }}
+                                            className={cn(
+                                                "flex-1 px-3 py-2 rounded-lg",
+                                                "bg-slate-800 border border-slate-600",
+                                                "text-white placeholder-slate-500 text-sm",
+                                                "focus:outline-none focus:border-amber-500"
+                                            )}
+                                            placeholder="Add checklist item..."
+                                        />
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={addChecklistItem}
+                                            disabled={!newChecklistItem.trim()}
+                                            className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </div>

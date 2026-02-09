@@ -2,11 +2,12 @@
 
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Check, X, Plus, Minus, Coins, MoreVertical } from 'lucide-react';
+import { Check, X, Plus, Minus, Coins, MoreVertical, Calendar, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/store/gameStore';
 import { playSuccessSound } from '@/lib/sounds';
 import { useState } from 'react';
+import { format, isToday, isTomorrow, isPast, isThisWeek } from 'date-fns';
 import type { Task } from '@/types';
 import { CATEGORY_INFO } from '@/types/categories';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,26 @@ interface TaskCardProps {
     compact?: boolean;
 }
 
+// Format due date Habitica-style
+function formatDueDate(dateStr: string): { text: string; color: string } {
+    const date = new Date(dateStr);
+    const now = new Date();
+
+    if (isPast(date) && !isToday(date)) {
+        return { text: format(date, 'MMM d'), color: 'text-red-400' };
+    }
+    if (isToday(date)) {
+        return { text: 'Today', color: 'text-amber-400' };
+    }
+    if (isTomorrow(date)) {
+        return { text: 'Tomorrow', color: 'text-yellow-400' };
+    }
+    if (isThisWeek(date)) {
+        return { text: format(date, 'EEEE'), color: 'text-blue-400' };
+    }
+    return { text: format(date, 'MMM d'), color: 'text-slate-400' };
+}
+
 export function TaskCard({ task, compact = false }: TaskCardProps) {
     const { soundEnabled, completeTask, failTask, updateTask, deleteTask } = useGameStore();
     const [isCompleted, setIsCompleted] = useState(false);
@@ -25,6 +46,13 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
     // Fallback for tasks without category (legacy data)
     const category = task.category || 'productivity';
     const categoryInfo = CATEGORY_INFO[category];
+
+    // Checklist progress
+    const checklistTotal = task.checklist?.length || 0;
+    const checklistDone = task.checklist?.filter((item) => item.completed).length || 0;
+
+    // Due date formatting
+    const dueDateInfo = task.dueDate ? formatDueDate(task.dueDate) : null;
 
     const handlePositive = () => {
         completeTask(task.type, task.id);
@@ -140,10 +168,32 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                                 )}>
                                     {task.title}
                                 </p>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <Coins className="w-3 h-3 text-cyan-400" />
-                                    <span className="text-cyan-400">{task.baseSouls || 5}</span>
-                                </p>
+                                <div className="flex items-center gap-2 text-xs">
+                                    {/* Souls */}
+                                    <span className="flex items-center gap-1">
+                                        <Coins className="w-3 h-3 text-cyan-400" />
+                                        <span className="text-cyan-400">{task.baseSouls || 5}</span>
+                                    </span>
+
+                                    {/* Due Date (todos) */}
+                                    {task.type === 'todo' && dueDateInfo && (
+                                        <span className={cn("flex items-center gap-1", dueDateInfo.color)}>
+                                            <Calendar className="w-3 h-3" />
+                                            <span>{dueDateInfo.text}</span>
+                                        </span>
+                                    )}
+
+                                    {/* Checklist progress */}
+                                    {checklistTotal > 0 && (
+                                        <span className={cn(
+                                            "flex items-center gap-1",
+                                            checklistDone === checklistTotal ? "text-emerald-400" : "text-slate-400"
+                                        )}>
+                                            <ListChecks className="w-3 h-3" />
+                                            <span>{checklistDone}/{checklistTotal}</span>
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </>
                     )}
@@ -224,12 +274,31 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                             </p>
                         )}
 
-                        {/* Rewards */}
+                        {/* Rewards and meta info */}
                         <div className="flex items-center gap-3 mt-2 text-sm">
                             <span className="flex items-center gap-1">
                                 <Coins className="w-4 h-4 text-cyan-400" />
                                 <span className="text-cyan-400">{task.baseSouls || 5}</span>
                             </span>
+
+                            {/* Due Date */}
+                            {task.type === 'todo' && dueDateInfo && (
+                                <span className={cn("flex items-center gap-1", dueDateInfo.color)}>
+                                    <Calendar className="w-4 h-4" />
+                                    <span>{dueDateInfo.text}</span>
+                                </span>
+                            )}
+
+                            {/* Checklist progress */}
+                            {checklistTotal > 0 && (
+                                <span className={cn(
+                                    "flex items-center gap-1",
+                                    checklistDone === checklistTotal ? "text-emerald-400" : "text-slate-400"
+                                )}>
+                                    <ListChecks className="w-4 h-4" />
+                                    <span>{checklistDone}/{checklistTotal}</span>
+                                </span>
+                            )}
                         </div>
                     </div>
 
