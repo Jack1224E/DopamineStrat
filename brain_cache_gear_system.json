@@ -1,0 +1,81 @@
+{
+    "brain_cache": [
+        {
+            "id": "GEAR-01",
+            "domain": "Itemization",
+            "topic": "XP as Currency",
+            "rule": "XP is not a score—it is 'Souls' (currency). Players spend XP at the 'Bonfire' (Shop) to purchase Consumables and Equipment that provide tactical advantages.",
+            "type": "MUST_DO",
+            "trigger": "Designing the XP system and Shop",
+            "verification": "User can open Shop and see items priced in XP, not unlocked by level alone.",
+            "red_flag": "XP only affects a leaderboard or cosmetic badge.",
+            "source_ref": "User's 'Productivity Gear' Concept"
+        },
+        {
+            "id": "GEAR-02",
+            "domain": "Consumables",
+            "topic": "Estus Flask",
+            "rule": "A one-time use item that restores HP. Allows more attempts at hard tasks. Must be purchased with XP or earned via perfect streaks.",
+            "type": "PATTERN",
+            "trigger": "User needs HP recovery",
+            "verification": "User buys Flask for 50 XP -> Uses it -> HP restored by X amount.",
+            "red_flag": "HP regenerates passively without player action.",
+            "source_ref": "User's 'Productivity Gear' Concept"
+        },
+        {
+            "id": "GEAR-03",
+            "domain": "Consumables",
+            "topic": "Green Blossom (Time Dilation)",
+            "rule": "A one-time use item that adds +5 minutes (or %) to a strict deadline. Provides breathing room on time-sensitive tasks.",
+            "type": "PATTERN",
+            "trigger": "User is about to miss a timed deadline",
+            "verification": "User applies Green Blossom -> Task timer extends by 5 minutes.",
+            "red_flag": "All deadlines are infinitely flexible with no cost.",
+            "source_ref": "User's 'Productivity Gear' Concept"
+        },
+        {
+            "id": "GEAR-04",
+            "domain": "Consumables",
+            "topic": "Gold Pine Resin (Focus Mode)",
+            "rule": "A one-time use item that triggers 'Focus Mode'—the AI automatically breaks the task into 3 smaller, easier-to-digest sub-chunks.",
+            "type": "PATTERN",
+            "trigger": "User feels overwhelmed by a large task",
+            "verification": "User applies Resin -> AI splits 'Write 2000 word essay' into 3 x 700-word sections.",
+            "red_flag": "Tasks are never broken down; user must manage complexity manually.",
+            "source_ref": "User's 'Productivity Gear' Concept"
+        },
+        {
+            "id": "GEAR-05",
+            "domain": "Equipment",
+            "topic": "Greatshield (Buffer Zone)",
+            "rule": "A permanent passive item. The first missed deadline of the day costs 0 HP. Provides a safety net against early mistakes.",
+            "type": "PATTERN",
+            "trigger": "User equips defensive gear",
+            "verification": "User misses first deadline -> No HP lost. Second miss -> Normal HP penalty.",
+            "red_flag": "Every missed deadline is equally punishing from start.",
+            "source_ref": "User's 'Productivity Gear' Concept"
+        },
+        {
+            "id": "GEAR-06",
+            "domain": "Equipment",
+            "topic": "Ring of Favor (Stamina Up)",
+            "rule": "A permanent passive item that increases Max Daily Task Limit. Allows power users to do more without hitting energy caps.",
+            "type": "PATTERN",
+            "trigger": "User wants to grind more tasks per day",
+            "verification": "With Ring: User can attempt 10 tasks/day instead of 7.",
+            "red_flag": "No limit on daily tasks; user can burn out infinitely.",
+            "source_ref": "User's 'Productivity Gear' Concept"
+        },
+        {
+            "id": "GEAR-07",
+            "domain": "Equipment",
+            "topic": "Moonlight Greatsword (Hard Mode Unlock)",
+            "rule": "A permanent item that unlocks 'S-Tier' tasks—massive XP rewards but instant death on failure. For advanced players only.",
+            "type": "PATTERN",
+            "trigger": "User seeks extreme risk/reward challenges",
+            "verification": "Without Greatsword: S-Tier tasks are greyed out. With it: S-Tier available.",
+            "red_flag": "Hardest challenges are available to beginners without earning access.",
+            "source_ref": "User's 'Productivity Gear' Concept"
+        }
+    ]
+}

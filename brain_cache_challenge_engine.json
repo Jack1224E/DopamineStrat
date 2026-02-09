@@ -1,0 +1,48 @@
+{
+    "brain_cache": [
+        {
+            "id": "SOULS-01",
+            "domain": "Core Loop",
+            "topic": "The Build-Problem Relevance",
+            "rule": "Rewards must be strictly utilitarian. XP is not a score; it is currency to buy 'Equipment' (Active Buffs) that make the next 'Boss' (Task) mathematically easier.",
+            "type": "MUST_DO",
+            "trigger": "Designing the Shop or Level-Up Rewards",
+            "verification": "Can the user buy an item that extends a deadline by 10%? If yes, the loop is closed.",
+            "red_flag": "XP is used only for cosmetic badges or leaderboard ranking.",
+            "source_ref": "User's 'Elden Ring Item' Analogy"
+        },
+        {
+            "id": "SOULS-02",
+            "domain": "AI Behavior",
+            "topic": "The Blind Arbiter",
+            "rule": "The AI must act as a 'Stateless Judge'. It does not care about user feelings or excuses. It only evaluates: Input vs. Constraint.",
+            "type": "MUST_DO",
+            "trigger": "Prompting the LLM for task verification",
+            "verification": "User: 'I did 14 pushups in 60s (target 15)'. AI Response: 'DEFEAT. Stake Lost.' (No encouragement).",
+            "red_flag": "AI says 'Close enough! Good effort!'",
+            "source_ref": "User's 'Strict Pass/Fail' Requirement"
+        },
+        {
+            "id": "SOULS-03",
+            "domain": "Difficulty Scaling",
+            "topic": "The Fog Gate Commitment",
+            "rule": "Users cannot simply 'start' a hard task. They must 'Traverse the Fog'—pay an upfront HP cost to attempt it. This creates 'Loss Aversion' immediately.",
+            "type": "PATTERN",
+            "trigger": "User clicks a High-Tier Task",
+            "verification": "A modal appears: 'Cost to Attempt: 5 HP. Reward: 100 XP. Proceed?'",
+            "red_flag": "User can spam-click 'Start' on hard tasks with zero risk.",
+            "source_ref": "Implementation Plan 1.1 (Stakes System)"
+        },
+        {
+            "id": "SOULS-04",
+            "domain": "Mastery",
+            "topic": "No Partial Credit",
+            "rule": "Remove all linear progress bars for single tasks. A task is a boolean state: 0 (Alive/Incomplete) or 1 (Dead/Complete).",
+            "type": "MUST_AVOID",
+            "trigger": "Designing the Task Card UI",
+            "verification": "Task card has no '50% done' slider. It has a 'Submit Proof' button only.",
+            "red_flag": "User gets 5 XP for 'trying'.",
+            "source_ref": "User's 'Consolation Prize' Anti-Pattern"
+        }
+    ]
+}

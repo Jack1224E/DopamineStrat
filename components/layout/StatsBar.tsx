@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/store/gameStore';
-import { Heart, Zap, RotateCcw, ChevronDown, ChevronUp, Flame, Trophy, Shield, Target, Sparkles, Crown } from 'lucide-react';
+import { Heart, Zap, RotateCcw, ChevronDown, ChevronUp, Flame, Trophy, Shield, Target, Sparkles, Crown, Skull, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { FlaskCounter } from '@/components/game/FlaskCounter';
 
 // Layer 1: Enhanced health status with game-like descriptions
 function getHealthStatus(hpPercent: number): {
@@ -103,35 +104,23 @@ function getMotivationMessage(level: number, xpPercent: number, xp: number): {
     };
 }
 
-// XP calculation for next level
-function getNextLevelXP(level: number): number {
-    return Math.floor(100 * Math.pow(1.5, level - 1));
-}
-
 export function StatsBar() {
-    const { hp, maxHp, xp, level, resetStats } = useGameStore();
+    const {
+        hp, maxHp, xp, unbankedXp, xpToLevel, level,
+        deathCount, isDowned, bankXp,
+        resetStats
+    } = useGameStore();
     const [isExpanded, setIsExpanded] = useState(false);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-    const [showCelebration, setShowCelebration] = useState(false);
 
-    // Calculate XP for current level
-    const xpToLevel = useMemo(() => getNextLevelXP(level), [level]);
-    const xpInLevel = useMemo(() => xp % xpToLevel, [xp, xpToLevel]);
-    const xpPercentage = useMemo(() => (xpInLevel / xpToLevel) * 100, [xpInLevel, xpToLevel]);
+    // Calculate percentages
+    const totalXp = xp + unbankedXp;
+    const xpPercentage = useMemo(() => (totalXp / xpToLevel) * 100, [totalXp, xpToLevel]);
     const hpPercentage = useMemo(() => (hp / maxHp) * 100, [hp, maxHp]);
 
     const healthStatus = useMemo(() => getHealthStatus(hpPercentage), [hpPercentage]);
-    const motivation = useMemo(() => getMotivationMessage(level, xpPercentage, xpInLevel), [level, xpPercentage, xpInLevel]);
-
-    // Celebration effect when XP is nearly full
-    useEffect(() => {
-        if (xpPercentage >= 95 && !showCelebration) {
-            setShowCelebration(true);
-            const timer = setTimeout(() => setShowCelebration(false), 2000);
-            return () => clearTimeout(timer);
-        }
-    }, [xpPercentage, showCelebration]);
+    const motivation = useMemo(() => getMotivationMessage(level, xpPercentage, totalXp), [level, xpPercentage, totalXp]);
 
     const handleResetClick = () => {
         if (showResetConfirm) {
@@ -156,7 +145,7 @@ export function StatsBar() {
                 "space-y-4 p-4 rounded-2xl border bg-gradient-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-sm",
                 "shadow-2xl shadow-black/20",
                 hpPercentage < 20 && "animate-pulse-slow border-red-500/30",
-                showCelebration && "ring-2 ring-yellow-400/50"
+                isDowned && "border-red-500/50 bg-gradient-to-br from-red-950/30 to-slate-900/90"
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -172,11 +161,12 @@ export function StatsBar() {
                             "bg-gradient-to-br from-primary/20 to-accent/20",
                             "flex items-center justify-center cursor-pointer",
                             healthStatus.gradient && `bg-gradient-to-br ${healthStatus.gradient}`,
-                            "shadow-lg"
+                            "shadow-lg",
+                            isDowned && "grayscale opacity-70"
                         )}
                         onClick={() => setIsExpanded(!isExpanded)}
                     >
-                        <span className="text-3xl">🧙‍♂️</span>
+                        <span className="text-3xl">{isDowned ? '💀' : '🧙‍♂️'}</span>
                         {/* Level Badge */}
                         <div className="absolute -bottom-2 -right-2">
                             <div className="relative">
@@ -201,15 +191,15 @@ export function StatsBar() {
 
                     <div className="space-y-1">
                         <h3 className="font-bold text-lg bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
-                            Adventurer
+                            {isDowned ? 'Fallen Adventurer' : 'Adventurer'}
                         </h3>
                         <div className="flex items-center gap-2">
                             <span className={cn("text-sm font-medium", healthStatus.color)}>
-                                {healthStatus.message}
+                                {isDowned ? 'YOU DIED' : healthStatus.message}
                             </span>
                             <span className="text-xs text-slate-400">•</span>
                             <span className="text-xs text-slate-400">
-                                {healthStatus.subtitle}
+                                {isDowned ? 'Complete Recovery Run' : healthStatus.subtitle}
                             </span>
                         </div>
                     </div>
@@ -268,50 +258,83 @@ export function StatsBar() {
                     />
                 </div>
 
-                {/* XP Bar */}
+                {/* XP Bar with Unbanked indicator */}
                 <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Zap className={cn(
-                                "w-4 h-4",
-                                xpPercentage > 90 ? "text-yellow-400 animate-bounce" :
-                                    "text-amber-400"
-                            )} />
+                            <Zap className="w-4 h-4 text-amber-400" />
                             <span className="text-sm font-medium text-slate-300">Experience</span>
                             <span className="text-xs text-slate-400 font-mono">
-                                {xpInLevel}/{xpToLevel}
+                                {xp}
+                                {unbankedXp > 0 && (
+                                    <span className="text-amber-400"> +{unbankedXp}</span>
+                                )}
+                                /{xpToLevel}
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            {showCelebration && (
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="text-yellow-400"
+                            {unbankedXp > 0 && (
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={bankXp}
+                                    className="h-6 px-2 text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-400"
+                                    title="Bank XP to protect from death"
                                 >
-                                    <Sparkles className="w-4 h-4" />
-                                </motion.div>
+                                    <Coins className="w-3 h-3 mr-1" />
+                                    Bank
+                                </Button>
                             )}
                             <span className={cn(
                                 "text-xs font-bold px-2 py-1 rounded",
-                                xpPercentage > 90 ? "bg-yellow-500/30 text-yellow-300" :
-                                    "bg-amber-500/20 text-amber-400"
+                                "bg-amber-500/20 text-amber-400"
                             )}>
                                 {Math.round(xpPercentage)}%
                             </span>
                         </div>
                     </div>
-                    <Progress
-                        value={xpPercentage}
-                        className={cn(
-                            "h-3 bg-slate-800 border border-slate-700",
-                            "[&>div]:transition-all [&>div]:duration-500",
-                            xpPercentage > 90 ?
-                                "[&>div]:bg-gradient-to-r [&>div]:from-yellow-500 [&>div]:to-amber-400 [&>div]:shadow-lg [&>div]:shadow-yellow-500/20" :
+                    <div className="relative">
+                        <Progress
+                            value={(xp / xpToLevel) * 100}
+                            className={cn(
+                                "h-3 bg-slate-800 border border-slate-700",
+                                "[&>div]:transition-all [&>div]:duration-500",
                                 "[&>div]:bg-gradient-to-r [&>div]:from-amber-500 [&>div]:to-orange-400"
+                            )}
+                        />
+                        {/* Unbanked XP overlay */}
+                        {unbankedXp > 0 && (
+                            <div
+                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-yellow-400/50 to-amber-300/50 animate-pulse rounded-full"
+                                style={{
+                                    left: `${(xp / xpToLevel) * 100}%`,
+                                    width: `${(unbankedXp / xpToLevel) * 100}%`,
+                                }}
+                            />
                         )}
-                    />
+                    </div>
+                    {unbankedXp > 0 && (
+                        <p className="text-xs text-amber-400/70 italic">
+                            ⚠️ Unbanked XP is lost on death!
+                        </p>
+                    )}
                 </div>
+            </div>
+
+            {/* Flask Counter */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-700/50">
+                <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400">Flasks:</span>
+                    <FlaskCounter />
+                </div>
+
+                {/* Death Counter */}
+                {deathCount > 0 && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/50 border border-slate-700">
+                        <Skull className="w-4 h-4 text-red-400" />
+                        <span className="text-sm font-mono text-slate-300">{deathCount}</span>
+                    </div>
+                )}
             </div>
 
             {/* Motivation Message */}
@@ -350,26 +373,24 @@ export function StatsBar() {
                                     </div>
                                 </div>
                                 <div className="bg-slate-800/50 rounded-xl p-3 text-center border border-slate-700">
-                                    <div className="text-xs text-slate-400 mb-1">XP Rate</div>
+                                    <div className="text-xs text-slate-400 mb-1">Total XP</div>
                                     <div className="text-2xl font-bold text-amber-400">
-                                        {Math.round(xpPercentage)}%
+                                        {totalXp}
                                     </div>
                                     <div className="text-xs text-slate-400 mt-1">
-                                        to next level
+                                        {unbankedXp > 0 ? `${unbankedXp} at risk` : "All safe"}
                                     </div>
                                 </div>
                                 <div className="bg-slate-800/50 rounded-xl p-3 text-center border border-slate-700">
-                                    <div className="text-xs text-slate-400 mb-1">Health</div>
+                                    <div className="text-xs text-slate-400 mb-1">Deaths</div>
                                     <div className={cn(
                                         "text-2xl font-bold",
-                                        hpPercentage > 70 ? "text-emerald-400" :
-                                            hpPercentage > 30 ? "text-amber-400" :
-                                                "text-rose-400"
+                                        deathCount > 0 ? "text-red-400" : "text-slate-500"
                                     )}>
-                                        {Math.round(hpPercentage)}%
+                                        {deathCount}
                                     </div>
                                     <div className="text-xs text-slate-400 mt-1">
-                                        {hpPercentage > 70 ? "Optimal" : "Needs attention"}
+                                        {deathCount === 0 ? "Untouched" : "Badge of honor"}
                                     </div>
                                 </div>
                             </div>
