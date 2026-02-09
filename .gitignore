@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Copyrighted Material
+Actionable-Gamification-Full-Book.pdf
+Gamification By Design PDF.pdf
+Reality_is_Broken.pdf
