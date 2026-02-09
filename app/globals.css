@@ -53,14 +53,38 @@
 :root,
 [data-theme="light"] {
   --radius: 0.625rem;
+
+  /* Semantic Tokens for Cool UI (Light) */
+  /* Slightly warmer, less sterile white. Tinted with a hint of warm grey/orange */
+  --surface-0: oklch(0.97 0.01 90);
+  --surface-1: oklch(1 0 0);
+  /* Cards pure white */
+  --surface-2: oklch(0.96 0.01 90);
+  /* Hover/Secondary */
+  --surface-3: oklch(0.93 0.02 90);
+  /* Borders/Accents */
+
+  --text-primary: oklch(0.2 0.03 265);
+  /* Deep slate purple */
+  --text-muted: oklch(0.55 0.02 265);
+  --text-faint: oklch(0.75 0 0);
+
+  --border-subtle: oklch(0.92 0 0);
+  --border-strong: oklch(0.8 0 0);
+
+  --shadow-soft: 0 2px 4px -1px rgb(0 0 0 / 0.06);
+  --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-glow: 0 0 10px -2px var(--primary);
+
   --background: oklch(0.985 0 0);
-  --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.546 0.245 262.881);
+  --primary: oklch(0.6 0.2 145);
+  /* Green for light mode too, slightly darker for visibility */
   --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.6 0.2 145);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -95,14 +119,40 @@
 
 [data-theme="cyberpunk"] {
   --radius: 0.625rem;
-  --background: oklch(0.165 0.02 270);
-  --foreground: oklch(0.9 0.1 180);
-  --card: oklch(0.195 0.02 270);
-  --card-foreground: oklch(0.9 0.1 180);
-  --popover: oklch(0.195 0.02 270);
-  --popover-foreground: oklch(0.9 0.1 180);
-  --primary: oklch(0.75 0.2 180);
-  --primary-foreground: oklch(0.165 0.02 270);
+  /* Semantic Tokens for Cool UI */
+  --surface-0: oklch(0.12 0.02 270);
+  /* App Background */
+  --surface-1: oklch(0.17 0.02 270);
+  /* Card Background */
+  --surface-2: oklch(0.22 0.02 270);
+  /* Hover/Modal */
+  --surface-3: oklch(0.28 0.03 270);
+  /* Active/Highlight */
+
+  --text-primary: oklch(0.98 0 0);
+  --text-muted: oklch(0.7 0.02 270);
+  --text-faint: oklch(0.5 0.02 270);
+
+  /* Spotify Green Theme */
+  --primary: oklch(0.65 0.22 145);
+  /* #1DB954 vibrant green */
+  --primary-foreground: oklch(0.15 0.05 145);
+  /* Dark text on green button for high contrast */
+
+  --secondary: oklch(0.28 0.05 145);
+  --secondary-foreground: oklch(0.9 0.05 145);
+  --text-primary: oklch(0.98 0 0);
+  /* White text */
+  --text-muted: oklch(0.7 0.05 145);
+  /* Green-tinted grey */
+  --text-faint: oklch(0.5 0.05 145);
+
+  --ring: oklch(0.65 0.22 145);
+  --sidebar-ring: oklch(0.65 0.22 145);
+
+  --border-subtle: oklch(0.3 0.05 145 / 40%);
+  --border-strong: oklch(0.5 0.1 145 / 50%);
+
   --secondary: oklch(0.28 0.05 280);
   --secondary-foreground: oklch(0.85 0.15 280);
   --muted: oklch(0.25 0.02 270);

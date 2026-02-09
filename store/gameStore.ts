@@ -111,7 +111,7 @@ interface GameState {
     resetStats: () => void;
 
     // Task actions
-    addTask: (type: TaskType, title: string, category?: TaskCategory, isCritical?: boolean) => void;
+    addTask: (type: TaskType, title: string, details?: Partial<Task>) => void;
     updateTask: (type: TaskType, taskId: string, updates: Partial<Task>) => void;
     toggleChecklistItem: (type: TaskType, taskId: string, checklistItemId: string) => void;
     completeTask: (type: TaskType, taskId: string) => void;
@@ -533,17 +533,18 @@ export const useGameStore = create<GameState>()(
                 set(INITIAL_STATE);
             },
 
-            addTask: (type: TaskType, title: string, category: TaskCategory = 'productivity', isCritical = false) => {
+            addTask: (type: TaskType, title: string, details: Partial<Task> = {}) => {
                 const newTask: Task = {
                     id: `${type}-${Date.now()}`,
                     title,
                     type,
-                    category,
-                    difficulty: 'easy',
+                    category: details.category || 'productivity',
+                    difficulty: details.difficulty || 'easy',
                     baseSouls: BASE_REWARDS[type].souls,
                     baseXp: BASE_REWARDS[type].xp,
                     hpStake: BASE_REWARDS[type].hpStake,
-                    isCritical,
+                    isCritical: details.isCritical || false,
+                    ...details, // Merge any other details (notes, dueDate, frequency, checklist, etc.)
                 };
 
                 set((state) => {

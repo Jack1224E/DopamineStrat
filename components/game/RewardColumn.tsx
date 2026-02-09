@@ -8,9 +8,18 @@ import { useGameStore } from '@/store/gameStore';
 import { RewardCard } from './RewardCard';
 import { cn } from '@/lib/utils';
 
-export function RewardColumn() {
-    const { rewards, addReward } = useGameStore();
+import type { Reward } from '@/types';
+
+interface RewardColumnProps {
+    rewards?: Reward[]; // Optional prop to support filtering
+}
+
+export function RewardColumn({ rewards: propRewards }: RewardColumnProps) {
+    const { rewards: storeRewards, addReward } = useGameStore();
+    const rewards = propRewards || storeRewards; // Use prop if available, else store
+
     const [isAdding, setIsAdding] = useState(false);
+
     const [newRewardTitle, setNewRewardTitle] = useState('');
     const [newRewardCost, setNewRewardCost] = useState(100);
 

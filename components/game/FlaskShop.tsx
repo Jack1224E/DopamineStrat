@@ -61,219 +61,230 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[9999] flex items-start justify-end p-4 sm:p-6 pt-32 sm:pt-32"
                 >
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
                         onClick={onClose}
                     />
 
                     {/* Modal */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.95, x: 20 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, x: 20 }}
                         className={cn(
-                            "relative z-10 w-full max-w-lg",
-                            "bg-gradient-to-br from-slate-900 to-slate-800",
-                            "rounded-2xl border border-amber-500/30",
-                            "shadow-2xl shadow-amber-500/10"
+                            "relative z-10 w-full max-w-md max-h-[80vh] flex flex-col",
+                            "bg-[var(--surface-1)]",
+                            "rounded-xl border border-[var(--border-strong)]",
+                            "shadow-2xl shadow-black/20"
                         )}
+                        style={{
+                            boxShadow: "0 0 40px -10px var(--primary)"
+                        }}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-slate-700">
+                        <div className="flex-none flex items-center justify-between p-5 border-b border-[var(--border-subtle)]">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-amber-500/20">
-                                    <ShoppingBag className="w-6 h-6 text-amber-400" />
+                                <div className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+                                    <ShoppingBag className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-white">Bonfire Shop</h2>
-                                    <p className="text-xs text-slate-400">Rest and resupply</p>
+                                    <h2 className="text-xl font-bold text-[var(--text-primary)]">Bonfire Shop</h2>
+                                    <p className="text-xs text-[var(--text-muted)]">Rest and resupply</p>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
-                                    <Coins className="w-4 h-4 text-cyan-400" />
-                                    <span className="font-bold text-cyan-300">{souls}</span>
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+                                    <Coins className="w-4 h-4 text-amber-500" />
+                                    <span className="font-bold text-[var(--text-primary)]">{souls}</span>
                                 </div>
 
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={onClose}
-                                    className="rounded-full hover:bg-slate-700"
+                                    className="rounded-full hover:bg-[var(--surface-2)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                                 >
                                     <X className="w-5 h-5" />
                                 </Button>
                             </div>
                         </div>
 
-                        {/* Active Buffs */}
-                        {(activeBuffs.ringOfProtection || activeBuffs.goldenPineResin) && (
-                            <div className="mx-4 mt-4 p-3 rounded-lg bg-purple-500/10 border border-purple-500/30">
-                                <div className="text-xs font-medium text-purple-400 mb-2">Active Buffs</div>
-                                <div className="flex gap-2">
-                                    {activeBuffs.ringOfProtection && (
-                                        <div className="flex items-center gap-1 px-2 py-1 rounded bg-blue-500/20 text-xs text-blue-400">
-                                            <Shield className="w-3 h-3" />
-                                            Protection
-                                        </div>
-                                    )}
-                                    {activeBuffs.goldenPineResin && (
-                                        <div className="flex items-center gap-1 px-2 py-1 rounded bg-yellow-500/20 text-xs text-yellow-400">
-                                            <Sparkles className="w-3 h-3" />
-                                            2x Souls
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                        {/* Scrollable Content */}
+                        <div className="flex-1 overflow-y-auto p-5 scrollbar-thin scrollbar-thumb-[var(--border-strong)] scrollbar-track-transparent">
 
-                        {/* Shop Items */}
-                        <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
-                            {/* Estus Flask - Special handling */}
-                            <motion.div
-                                className={cn(
-                                    "p-4 rounded-xl border transition-all",
-                                    "bg-gradient-to-r from-orange-900/20 to-amber-900/20",
-                                    canBuyFlask()
-                                        ? "border-orange-500/50 hover:border-orange-400"
-                                        : "border-slate-700 opacity-70"
-                                )}
-                            >
-                                <div className="flex items-start gap-4">
-                                    <div className={cn(
-                                        "w-12 h-12 rounded-lg flex items-center justify-center",
-                                        "bg-gradient-to-br from-orange-700 to-amber-800",
-                                        "border border-orange-600"
-                                    )}>
-                                        {ITEM_ICONS.estus_flask}
-                                    </div>
-
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <h3 className="font-bold text-white">{flaskItem.name}</h3>
-                                            <span className="px-2 py-0.5 rounded bg-orange-500/30 text-xs text-orange-300">
-                                                {flasks}/{maxFlasks}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-slate-400 mt-0.5">
-                                            {flaskItem.description}
-                                        </p>
-                                        <p className="text-xs text-emerald-400 mt-1">
-                                            ✦ {flaskItem.effect}
-                                        </p>
-                                    </div>
-
-                                    <Button
-                                        size="sm"
-                                        onClick={() => handleBuy('estus_flask')}
-                                        disabled={!canBuyFlask()}
-                                        className={cn(
-                                            "min-w-[100px]",
-                                            canBuyFlask()
-                                                ? "bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500"
-                                                : "bg-slate-700"
-                                        )}
-                                    >
-                                        <Coins className="w-3 h-3 mr-1" />
-                                        {flaskItem.cost}
-                                    </Button>
-                                </div>
-                            </motion.div>
-
-                            {/* Regular Items */}
-                            {regularItems.map((item) => {
-                                const owned = inventory[item.id];
-                                const canBuyThis = canBuyItem(item.id);
-                                const canUseThis = canUse(item.id);
-
-                                return (
-                                    <motion.div
-                                        key={item.id}
-                                        className={cn(
-                                            "p-4 rounded-xl border transition-all",
-                                            "bg-slate-800/50",
-                                            canBuyThis
-                                                ? "border-slate-600 hover:border-amber-500/50"
-                                                : "border-slate-700 opacity-70"
-                                        )}
-                                    >
-                                        <div className="flex items-start gap-4">
-                                            <div className={cn(
-                                                "w-12 h-12 rounded-lg flex items-center justify-center",
-                                                "bg-gradient-to-br from-slate-700 to-slate-800",
-                                                "border border-slate-600"
-                                            )}>
-                                                {ITEM_ICONS[item.id]}
+                            {/* Active Buffs */}
+                            {(activeBuffs.ringOfProtection || activeBuffs.goldenPineResin) && (
+                                <div className="mb-6 p-3 rounded-lg bg-[var(--surface-2)] border border-[var(--border-subtle)]">
+                                    <div className="text-xs font-medium text-[var(--text-muted)] mb-2 uppercase tracking-wider">Active Buffs</div>
+                                    <div className="flex gap-2">
+                                        {activeBuffs.ringOfProtection && (
+                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-500/10 text-xs font-medium text-blue-500 border border-blue-500/20">
+                                                <Shield className="w-3 h-3" />
+                                                Protection
                                             </div>
+                                        )}
+                                        {activeBuffs.goldenPineResin && (
+                                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-yellow-500/10 text-xs font-medium text-yellow-600 border border-yellow-500/20">
+                                                <Sparkles className="w-3 h-3" />
+                                                2x Souls
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
 
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-bold text-white">{item.name}</h3>
-                                                    {owned > 0 && (
-                                                        <span className="px-2 py-0.5 rounded bg-slate-700 text-xs text-slate-300">
-                                                            x{owned}
-                                                        </span>
-                                                    )}
+                            <div className="space-y-4">
+                                {/* Estus Flask - Special handling */}
+                                <motion.div
+                                    className={cn(
+                                        "p-4 rounded-xl border transition-all duration-200",
+                                        "bg-gradient-to-r from-orange-500/5 to-amber-500/5",
+                                        canBuyFlask()
+                                            ? "border-orange-500/30 hover:border-orange-500/60 shadow-sm"
+                                            : "border-[var(--border-subtle)] opacity-60 grayscale"
+                                    )}
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className={cn(
+                                            "w-12 h-12 rounded-lg flex items-center justify-center text-2xl shadow-inner",
+                                            "bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/40 dark:to-amber-900/40",
+                                            "border border-orange-200 dark:border-orange-800"
+                                        )}>
+                                            {ITEM_ICONS.estus_flask}
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-bold text-[var(--text-primary)]">{flaskItem.name}</h3>
+                                                <span className="px-1.5 py-0.5 rounded bg-orange-500/10 text-[10px] font-bold text-orange-600 border border-orange-200 uppercase tracking-tight">
+                                                    {flasks}/{maxFlasks}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-[var(--text-muted)] mt-0.5 leading-relaxed">
+                                                {flaskItem.description}
+                                            </p>
+                                            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1.5 font-medium flex items-center gap-1">
+                                                <span>✦</span> {flaskItem.effect}
+                                            </p>
+                                        </div>
+
+                                        <Button
+                                            size="sm"
+                                            onClick={() => handleBuy('estus_flask')}
+                                            disabled={!canBuyFlask()}
+                                            className={cn(
+                                                "min-w-[90px] shadow-sm font-semibold",
+                                                canBuyFlask()
+                                                    ? "bg-orange-600 hover:bg-orange-500 text-white border-none"
+                                                    : "bg-[var(--surface-3)] text-[var(--text-muted)]"
+                                            )}
+                                        >
+                                            <Coins className="w-3.5 h-3.5 mr-1.5" />
+                                            {flaskItem.cost}
+                                        </Button>
+                                    </div>
+                                </motion.div>
+
+                                {/* Regular Items */}
+                                {regularItems.map((item) => {
+                                    const owned = inventory[item.id];
+                                    const canBuyThis = canBuyItem(item.id);
+                                    const canUseThis = canUse(item.id);
+
+                                    return (
+                                        <motion.div
+                                            key={item.id}
+                                            className={cn(
+                                                "p-4 rounded-xl border transition-all duration-200",
+                                                "bg-[var(--surface-1)] hover:bg-[var(--surface-2)]",
+                                                canBuyThis
+                                                    ? "border-[var(--border-subtle)] hover:border-[var(--primary)]/30"
+                                                    : "border-[var(--border-subtle)] opacity-60"
+                                            )}
+                                        >
+                                            <div className="flex items-start gap-4">
+                                                <div className={cn(
+                                                    "w-12 h-12 rounded-lg flex items-center justify-center text-xl shadow-sm",
+                                                    "bg-[var(--surface-2)] border border-[var(--border-subtle)]"
+                                                )}>
+                                                    {ITEM_ICONS[item.id]}
                                                 </div>
-                                                <p className="text-sm text-slate-400 mt-0.5">
-                                                    {item.description}
-                                                </p>
-                                                <p className="text-xs text-emerald-400 mt-1">
-                                                    ✦ {item.effect}
-                                                </p>
-                                            </div>
 
-                                            <div className="flex flex-col gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    onClick={() => handleBuy(item.id)}
-                                                    disabled={!canBuyThis}
-                                                    className={cn(
-                                                        "min-w-[100px]",
-                                                        canBuyThis
-                                                            ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500"
-                                                            : "bg-slate-700"
-                                                    )}
-                                                >
-                                                    <Coins className="w-3 h-3 mr-1" />
-                                                    {item.cost}
-                                                </Button>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="font-bold text-[var(--text-primary)]">{item.name}</h3>
+                                                        {owned > 0 && (
+                                                            <span className="px-1.5 py-0.5 rounded bg-[var(--surface-3)] text-[10px] font-medium text-[var(--text-muted)] border border-[var(--border-subtle)]">
+                                                                x{owned}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-[var(--text-muted)] mt-0.5 leading-relaxed">
+                                                        {item.description}
+                                                    </p>
+                                                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1.5 font-medium flex items-center gap-1">
+                                                        <span>✦</span> {item.effect}
+                                                    </p>
+                                                </div>
 
-                                                {owned > 0 && (
+                                                <div className="flex flex-col gap-2">
                                                     <Button
                                                         size="sm"
-                                                        variant="outline"
-                                                        onClick={() => handleUse(item.id)}
-                                                        disabled={!canUseThis}
+                                                        onClick={() => handleBuy(item.id)}
+                                                        disabled={!canBuyThis}
                                                         className={cn(
-                                                            "min-w-[100px]",
-                                                            canUseThis
-                                                                ? "border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10"
-                                                                : "opacity-50"
+                                                            "min-w-[90px] font-semibold shadow-sm",
+                                                            canBuyThis
+                                                                ? "bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-[var(--primary-foreground)]"
+                                                                : "bg-[var(--surface-3)] text-[var(--text-muted)]"
                                                         )}
                                                     >
-                                                        Use
+                                                        <Coins className="w-3.5 h-3.5 mr-1.5" />
+                                                        {item.cost}
                                                     </Button>
-                                                )}
+
+                                                    {owned > 0 && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => handleUse(item.id)}
+                                                            disabled={!canUseThis}
+                                                            className={cn(
+                                                                "min-w-[90px] text-xs h-7",
+                                                                canUseThis
+                                                                    ? "border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400"
+                                                                    : "opacity-50"
+                                                            )}
+                                                        >
+                                                            Use
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })}
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         {/* Footer */}
-                        <div className="p-4 border-t border-slate-700">
-                            <p className="text-xs text-center text-slate-500">
-                                {hollowLevel > 0 && "⚠️ Use Human Effigy to reverse hollowing"}
-                                {hollowLevel === 0 && "Rest at the bonfire, Chosen Undead"}
+                        <div className="flex-none p-4 border-t border-[var(--border-subtle)] bg-[var(--surface-1)]/50 rounded-b-xl">
+                            <p className="text-xs text-center text-[var(--text-muted)] flex items-center justify-center gap-2">
+                                {hollowLevel > 0 ? (
+                                    <>
+                                        <span className="text-red-500">⚠️</span>
+                                        <span>Use <span className="font-semibold">Human Effigy</span> to reverse hollowing</span>
+                                    </>
+                                ) : (
+                                    "Rest at the bonfire, Chosen Undead"
+                                )}
                             </p>
                         </div>
                     </motion.div>

@@ -46,27 +46,33 @@ export function RewardCard({ reward }: RewardCardProps) {
         <>
             <motion.div
                 layout
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 className={cn(
-                    "relative group p-4 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 transition-all",
-                    !canAfford && "opacity-60 grayscale-[0.5]"
+                    "relative group flex flex-col gap-3 p-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)]",
+                    "bg-[var(--surface-1)] hover:bg-[var(--surface-2)] hover:border-[var(--border-strong)] transition-all",
+                    !canAfford && "opacity-70 grayscale-[0.3]"
                 )}
             >
                 {/* Header: Icon + Title + Menu */}
-                <div className="flex justify-between items-start mb-3">
+                <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                         <div className={cn(
-                            "w-10 h-10 rounded-lg flex items-center justify-center bg-slate-700 ring-1 ring-white/10",
-                            canAfford ? "text-amber-400" : "text-slate-500"
+                            "flex items-center justify-center w-10 h-10 rounded-[var(--radius-sm)] bg-[var(--surface-0)] border border-[var(--border-subtle)]",
+                            canAfford ? "text-amber-400" : "text-[var(--text-muted)]"
                         )}>
                             <Coins className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-white leading-tight">{reward.title}</h3>
-                            <div className="text-xs text-amber-400/80 font-mono mt-0.5 font-medium flex items-center gap-1">
-                                {reward.cost} <Coins className="w-3 h-3" />
+                            <h3 className="text-sm font-semibold leading-tight text-[var(--text-primary)]">
+                                {reward.title}
+                            </h3>
+                            <div className="text-xs font-mono font-medium mt-0.5 flex items-center gap-1 text-[var(--text-muted)]">
+                                <span className={cn(canAfford ? "text-amber-400" : "text-rose-400")}>
+                                    {reward.cost}
+                                </span>
+                                <Coins className="w-3 h-3 text-amber-500" />
                             </div>
                         </div>
                     </div>
@@ -78,7 +84,7 @@ export function RewardCard({ reward }: RewardCardProps) {
                                 e.stopPropagation();
                                 setShowMenu(!showMenu);
                             }}
-                            className="p-1.5 rounded-md hover:bg-white/10 text-slate-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                            className="p-1.5 opacity-0 group-hover:opacity-100 rounded-md hover:bg-[var(--surface-3)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
                         >
                             <MoreVertical className="w-4 h-4" />
                         </button>
@@ -90,13 +96,13 @@ export function RewardCard({ reward }: RewardCardProps) {
                                     className="fixed inset-0 z-10"
                                     onClick={() => setShowMenu(false)}
                                 />
-                                <div className="absolute right-0 top-full mt-1 z-20 w-32 rounded-lg bg-slate-800 border border-slate-700 shadow-xl overflow-hidden py-1">
+                                <div className="absolute right-0 top-full mt-1 z-20 w-32 rounded-lg bg-[var(--surface-2)] border border-[var(--border-strong)] shadow-lg overflow-hidden py-1">
                                     <button
                                         onClick={() => {
                                             setIsEditModalOpen(true);
                                             setShowMenu(false);
                                         }}
-                                        className="w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-white flex items-center gap-2"
+                                        className="w-full px-3 py-2 text-left text-sm text-[var(--text-muted)] hover:bg-[var(--surface-3)] hover:text-[var(--text-primary)] flex items-center gap-2"
                                     >
                                         <Edit2 className="w-3 h-3" /> Edit
                                     </button>
@@ -105,7 +111,7 @@ export function RewardCard({ reward }: RewardCardProps) {
                                             deleteReward(reward.id);
                                             setShowMenu(false);
                                         }}
-                                        className="w-full px-3 py-2 text-left text-sm text-red-400 hover:bg-slate-700 hover:text-red-300 flex items-center gap-2"
+                                        className="w-full px-3 py-2 text-left text-sm text-rose-400 hover:bg-[var(--surface-3)] hover:text-rose-300 flex items-center gap-2"
                                     >
                                         <Trash2 className="w-3 h-3" /> Delete
                                     </button>
@@ -115,31 +121,23 @@ export function RewardCard({ reward }: RewardCardProps) {
                     </div>
                 </div>
 
-                {/* Notes (if any) */}
-                {reward.notes && (
-                    <p className="text-xs text-slate-400 mb-4 line-clamp-2 min-h-[1.5em]">
-                        {reward.notes}
-                    </p>
-                )}
-                {!reward.notes && <div className="mb-4" />} {/* Spacer */}
-
                 {/* Buy Button */}
                 <Button
                     onClick={handleBuy}
                     disabled={!canAfford}
                     className={cn(
-                        "w-full h-9 text-xs font-bold uppercase tracking-wider transition-all",
+                        "w-full h-8 text-xs font-bold uppercase tracking-wider transition-all shadow-sm",
                         canAfford
-                            ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-lg shadow-amber-900/20 hover:scale-[1.02] active:scale-[0.98]"
-                            : "bg-slate-700/50 text-slate-500 cursor-not-allowed border border-slate-700"
+                            ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-amber-900/10"
+                            : "bg-[var(--surface-0)] text-[var(--text-muted)] border border-[var(--border-subtle)] cursor-not-allowed"
                     )}
                 >
                     {canAfford ? (
                         <span className="flex items-center gap-1">
-                            Buy <Coins className="w-3 h-3" />
+                            Buy
                         </span>
                     ) : (
-                        `Need ${reward.cost - souls} More`
+                        `Need ${reward.cost - souls}`
                     )}
                 </Button>
             </motion.div>

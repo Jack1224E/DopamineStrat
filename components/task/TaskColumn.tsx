@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { TaskCard } from './TaskCard';
 import { Plus } from 'lucide-react';
 import { useGameStore } from '@/store/gameStore';
+import { cn } from '@/lib/utils';
 import type { Task, TaskType } from '@/types';
 
 interface TaskColumnProps {
@@ -14,15 +15,10 @@ interface TaskColumnProps {
 }
 
 export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps) {
+    const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'all'>('active');
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [isInputVisible, setIsInputVisible] = useState(false);
     const { addTask } = useGameStore();
-
-    const typeColors = {
-        habit: 'border-t-primary',
-        daily: 'border-t-accent',
-        todo: 'border-t-success',
-    };
 
     const handleAddTask = () => {
         if (newTaskTitle.trim()) {
@@ -41,17 +37,73 @@ export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps)
         }
     };
 
+    // Filter tasks based on active tab
+    const filteredTasks = tasks.filter(task => {
+        if (type === 'habit') return true; // Habits are always active
+        if (activeTab === 'active') return !task.completed;
+        if (activeTab === 'completed') return task.completed;
+        return true;
+    });
+
+    const counts = {
+        active: tasks.filter(t => !t.completed).length,
+        completed: tasks.filter(t => t.completed).length,
+        all: tasks.length
+    };
+
+    const tabs = type === 'habit'
+        ? []
+        : [
+            { id: 'active', label: 'Active', count: counts.active },
+            { id: 'completed', label: 'Done', count: counts.completed }
+        ];
+
     return (
-        <div className={`flex flex-col bg-card rounded-lg border border-border ${typeColors[type]} border-t-4 shadow-sm`}>
+        <div className="flex flex-col h-full bg-[var(--surface-1)] rounded-[var(--radius-lg)] border border-[var(--border-subtle)] shadow-sm overflow-hidden transition-all hover:border-[var(--border-strong)]">
             {/* Column Header */}
-            <div className="p-4 border-b border-border">
-                <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+            <div className="p-4 border-b border-[var(--border-subtle)] bg-[var(--surface-1)]">
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] tracking-tight flex items-center gap-2">
+                        {title}
+                        <span className="flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-xs font-bold rounded-full bg-[var(--surface-3)] text-[var(--text-muted)]">
+                            {tasks.length}
+                        </span>
+                    </h2>
+                </div>
+
+                {/* Tabs (Only for Dailies/Todos) */}
+                {tabs.length > 0 && (
+                    <div className="flex p-1 gap-1 bg-[var(--surface-0)]/50 rounded-[var(--radius-md)]">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-[var(--radius-sm)] transition-all",
+                                    activeTab === tab.id
+                                        ? "bg-[var(--surface-2)] text-[var(--primary)] shadow-sm"
+                                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]/50"
+                                )}
+                            >
+                                {tab.label}
+                                {tab.count > 0 && (
+                                    <span className={cn(
+                                        "px-1.5 py-0.5 rounded-full text-[10px] bg-[var(--surface-0)]",
+                                        activeTab === tab.id ? "text-[var(--primary)]" : "text-[var(--text-muted)]"
+                                    )}>
+                                        {tab.count}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Add Task Input */}
-            <div className="p-3 border-b border-border">
+            <div className="p-3 border-b border-[var(--border-subtle)] bg-[var(--surface-0)]/30">
                 {isInputVisible ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
                         <input
                             type="text"
                             value={newTaskTitle}
@@ -59,12 +111,12 @@ export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps)
                             onKeyDown={handleKeyDown}
                             placeholder={placeholder}
                             autoFocus
-                            className="flex-1 px-3 py-2 rounded-md bg-background border border-input text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                            className="flex-1 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--surface-0)] border border-[var(--border-subtle)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all"
                         />
                         <button
                             onClick={handleAddTask}
                             disabled={!newTaskTitle.trim()}
-                            className="px-3 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 rounded-[var(--radius-md)] bg-[var(--primary)] text-[var(--primary-foreground)] text-sm font-medium hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                         >
                             Add
                         </button>
@@ -72,26 +124,29 @@ export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps)
                 ) : (
                     <button
                         onClick={() => setIsInputVisible(true)}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-md bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors text-sm"
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--surface-0)]/50 hover:bg-[var(--surface-2)] border border-transparent hover:border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all text-sm group"
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
                         {placeholder}
                     </button>
                 )}
             </div>
 
             {/* Task List */}
-            <div className="flex-1 p-3 space-y-2 overflow-y-auto max-h-[60vh]">
-                {tasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
-                            <Plus className="w-6 h-6" />
+            <div className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[60vh] min-h-[300px] scrollbar-thin scrollbar-thumb-[var(--border-strong)] scrollbar-track-transparent">
+                {filteredTasks.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-48 text-[var(--text-faint)] animate-in fade-in duration-500">
+                        <div className="w-16 h-16 rounded-full bg-[var(--surface-0)] flex items-center justify-center mb-3">
+                            <Plus className="w-8 h-8 opacity-20" />
                         </div>
-                        <p className="text-sm">These are your {title}</p>
+                        <p className="text-sm font-medium">No {activeTab === 'active' ? 'active' : 'completed'} tasks</p>
+                        <p className="text-xs opacity-70">Add one above to get started</p>
                     </div>
                 ) : (
-                    tasks.map((task) => (
-                        <TaskCard key={task.id} task={task} compact />
+                    filteredTasks.map((task) => (
+                        <div key={task.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <TaskCard task={task} compact />
+                        </div>
                     ))
                 )}
             </div>

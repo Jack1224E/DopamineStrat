@@ -64,7 +64,11 @@ function getHealthStatus(hpPercent: number): {
     };
 }
 
-export function StatsBar() {
+interface StatsBarProps {
+    onShopClick?: () => void;
+}
+
+export function StatsBar({ onShopClick }: StatsBarProps) {
     const {
         hp, baseMaxHp, xp, xpToLevel, level, souls,
         deathCount, isDowned, hollowLevel, categoryXp,
@@ -72,7 +76,7 @@ export function StatsBar() {
     } = useGameStore();
     const [isExpanded, setIsExpanded] = useState(false);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
-    const [showShop, setShowShop] = useState(false);
+    const [internalShowShop, setInternalShowShop] = useState(false);
 
     const maxHp = getMaxHp();
     const xpPercentage = useMemo(() => (xp / xpToLevel) * 100, [xp, xpToLevel]);
@@ -89,6 +93,14 @@ export function StatsBar() {
         }
     };
 
+    const handleShopOpen = () => {
+        if (onShopClick) {
+            onShopClick();
+        } else {
+            setInternalShowShop(true);
+        }
+    };
+
     // Compute attributes from categoryXp
     const attributes = Object.entries(categoryXp).map(([cat, catXp]) => {
         const category = cat as TaskCategory;
@@ -99,7 +111,7 @@ export function StatsBar() {
 
     return (
         <>
-            <FlaskShop isOpen={showShop} onClose={() => setShowShop(false)} />
+            {!onShopClick && <FlaskShop isOpen={internalShowShop} onClose={() => setInternalShowShop(false)} />}
 
             <div
                 className={cn(
@@ -173,7 +185,7 @@ export function StatsBar() {
                         <Button
                             variant="outline"
                             size="icon"
-                            onClick={() => setShowShop(true)}
+                            onClick={handleShopOpen}
                             className="h-10 w-10 rounded-xl border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20"
                         >
                             <ShoppingBag className="w-5 h-5 text-amber-400" />

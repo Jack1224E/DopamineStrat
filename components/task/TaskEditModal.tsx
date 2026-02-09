@@ -139,10 +139,11 @@ export function TaskEditModal({
     const selectedDifficulty = DIFFICULTY_OPTIONS.find(d => d.value === difficulty);
 
     const getModalTitle = () => {
+        const action = task.id ? 'Edit' : 'Create';
         switch (taskType) {
-            case 'habit': return 'Edit Habit';
-            case 'daily': return 'Edit Daily';
-            case 'todo': return 'Edit To Do';
+            case 'habit': return `${action} Habit`;
+            case 'daily': return `${action} Daily`;
+            case 'todo': return `${action} To Do`;
         }
     };
 
@@ -538,20 +539,22 @@ export function TaskEditModal({
                             )}
                         </div>
 
-                        {/* Footer with Delete */}
-                        <div className="p-4 border-t border-slate-700">
-                            <Button
-                                variant={showDeleteConfirm ? "destructive" : "ghost"}
-                                onClick={handleDelete}
-                                className={cn(
-                                    "w-full",
-                                    !showDeleteConfirm && "text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                )}
-                            >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                {showDeleteConfirm ? 'Confirm Delete?' : `Delete this ${taskType === 'todo' ? 'To Do' : taskType === 'daily' ? 'Daily' : 'Habit'}`}
-                            </Button>
-                        </div>
+                        {/* Footer with Delete - Only show if editing existing task */}
+                        {task.id && (
+                            <div className="p-4 border-t border-slate-700">
+                                <Button
+                                    variant={showDeleteConfirm ? "destructive" : "ghost"}
+                                    onClick={handleDelete}
+                                    className={cn(
+                                        "w-full",
+                                        !showDeleteConfirm && "text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                    )}
+                                >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    {showDeleteConfirm ? 'Confirm Delete?' : `Delete this ${taskType === 'todo' ? 'To Do' : taskType === 'daily' ? 'Daily' : 'Habit'}`}
+                                </Button>
+                            </div>
+                        )}
                     </motion.div>
                 </motion.div>
             )}
