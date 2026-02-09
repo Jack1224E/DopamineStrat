@@ -8,10 +8,11 @@ export interface Task {
     title: string;
     description?: string;
     type: TaskType;
-    category: TaskCategory;     // NEW: productivity, sports, fitness, etc.
+    category: TaskCategory;     // productivity, sports, fitness, etc.
     baseSouls: number;          // Base Souls reward
     baseXp: number;             // Base XP reward
     hpStake: number;            // HP cost to attempt
+    isCritical?: boolean;       // Critical habit fail = instant death
     completed?: boolean;
 }
 

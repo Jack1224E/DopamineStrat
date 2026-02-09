@@ -3,19 +3,34 @@ import { persist } from 'zustand/middleware';
 import type { Task, TaskType } from '@/types';
 import {
     type TaskCategory,
-    type AttributeType,
+    type ShopItemId,
     CATEGORY_ATTRIBUTE_MAP,
-    DEFAULT_ATTRIBUTES,
+    DEFAULT_CATEGORY_XP,
     calculateSoulsReward,
     calculateXpReward,
+    getAttributeLevel,
     BASE_REWARDS,
     FLASK_CONFIG,
+    HOLLOW_CONFIG,
+    SHOP_ITEMS,
 } from '@/types/categories';
+
+interface Inventory {
+    estus_flask: number;
+    human_effigy: number;
+    ring_of_protection: number;
+    golden_pine_resin: number;
+}
+
+interface ActiveBuffs {
+    ringOfProtection: boolean;  // Next fail costs 50% less HP
+    goldenPineResin: boolean;   // Next complete gives 2x Souls
+}
 
 interface GameState {
     // Core stats
     hp: number;
-    maxHp: number;
+    baseMaxHp: number;          // True max HP before hollow
     xp: number;
     xpToLevel: number;
     level: number;
@@ -24,16 +39,23 @@ interface GameState {
     // Souls currency (lose 50% on death)
     souls: number;
 
-    // User Attributes (6 stats)
-    attributes: Record<AttributeType, number>;
+    // Category XP tracking (100 XP = 1 attribute level)
+    categoryXp: Record<TaskCategory, number>;
 
     // Flask system
     flasks: number;
     maxFlasks: number;
 
+    // Inventory
+    inventory: Inventory;
+    activeBuffs: ActiveBuffs;
+
     // Category tracking for diminishing returns
     categoryStreak: Record<TaskCategory, number>;
     lastCategory: TaskCategory | null;
+
+    // Hollowing (0-5, each level = -10% max HP)
+    hollowLevel: number;
 
     // Death tracking
     isDowned: boolean;
@@ -45,24 +67,28 @@ interface GameState {
     dailies: Task[];
     todos: Task[];
 
+    // Computed getters (as functions)
+    getMaxHp: () => number;
+    getAttributeLevel: (category: TaskCategory) => number;
+
     // Actions
-    gainXp: (amount: number) => void;
+    gainXp: (amount: number, category?: TaskCategory) => void;
     gainSouls: (amount: number) => void;
     spendSouls: (amount: number) => boolean;
     loseHp: (amount: number) => void;
     stakeHp: (amount: number) => boolean;
     recoverHp: (amount: number) => void;
     useFlask: () => boolean;
-    buyFlask: () => boolean;
+    buyItem: (itemId: ShopItemId) => boolean;
+    useItem: (itemId: ShopItemId) => boolean;
     refillFlasks: () => void;
     revive: () => void;
-    incrementAttribute: (attr: AttributeType, amount?: number) => void;
     updateCategoryStreak: (category: TaskCategory) => void;
     toggleSound: () => void;
     resetStats: () => void;
 
     // Task actions
-    addTask: (type: TaskType, title: string, category?: TaskCategory) => void;
+    addTask: (type: TaskType, title: string, category?: TaskCategory, isCritical?: boolean) => void;
     completeTask: (type: TaskType, taskId: string) => void;
     failTask: (type: TaskType, taskId: string) => void;
     deleteTask: (type: TaskType, taskId: string) => void;
@@ -86,6 +112,7 @@ const INITIAL_TASKS = {
             baseSouls: BASE_REWARDS.habit.souls,
             baseXp: BASE_REWARDS.habit.xp,
             hpStake: BASE_REWARDS.habit.hpStake,
+            isCritical: false,
         },
         {
             id: 'habit-2',
@@ -95,6 +122,7 @@ const INITIAL_TASKS = {
             baseSouls: BASE_REWARDS.habit.souls,
             baseXp: BASE_REWARDS.habit.xp,
             hpStake: BASE_REWARDS.habit.hpStake,
+            isCritical: false,
         },
     ],
     dailies: [
@@ -106,6 +134,7 @@ const INITIAL_TASKS = {
             baseSouls: BASE_REWARDS.daily.souls,
             baseXp: BASE_REWARDS.daily.xp,
             hpStake: BASE_REWARDS.daily.hpStake,
+            isCritical: false,
         },
         {
             id: 'daily-2',
@@ -115,6 +144,7 @@ const INITIAL_TASKS = {
             baseSouls: BASE_REWARDS.daily.souls,
             baseXp: BASE_REWARDS.daily.xp,
             hpStake: BASE_REWARDS.daily.hpStake,
+            isCritical: false,
         },
     ],
     todos: [
@@ -126,6 +156,7 @@ const INITIAL_TASKS = {
             baseSouls: BASE_REWARDS.todo.souls,
             baseXp: BASE_REWARDS.todo.xp,
             hpStake: BASE_REWARDS.todo.hpStake,
+            isCritical: false,
         },
         {
             id: 'todo-2',
@@ -135,13 +166,14 @@ const INITIAL_TASKS = {
             baseSouls: BASE_REWARDS.todo.souls,
             baseXp: BASE_REWARDS.todo.xp,
             hpStake: BASE_REWARDS.todo.hpStake,
+            isCritical: false,
         },
     ],
 };
 
 const INITIAL_STATE = {
     hp: STARTING_HP,
-    maxHp: STARTING_HP,
+    baseMaxHp: STARTING_HP,
     xp: 0,
     xpToLevel: getXpToLevel(1),
     level: 1,
@@ -150,12 +182,24 @@ const INITIAL_STATE = {
     // Souls currency
     souls: 0,
 
-    // Attributes
-    attributes: { ...DEFAULT_ATTRIBUTES },
+    // Category XP (all start at 0)
+    categoryXp: { ...DEFAULT_CATEGORY_XP },
 
-    // Flask (start with 1)
+    // Flasks
     flasks: 1,
     maxFlasks: FLASK_CONFIG.maxFlasks,
+
+    // Inventory
+    inventory: {
+        estus_flask: 0,
+        human_effigy: 0,
+        ring_of_protection: 0,
+        golden_pine_resin: 0,
+    },
+    activeBuffs: {
+        ringOfProtection: false,
+        goldenPineResin: false,
+    },
 
     // Category tracking
     categoryStreak: {
@@ -167,6 +211,9 @@ const INITIAL_STATE = {
         social: 0,
     },
     lastCategory: null as TaskCategory | null,
+
+    // Hollowing
+    hollowLevel: 0,
 
     // Death
     isDowned: false,
@@ -181,7 +228,20 @@ export const useGameStore = create<GameState>()(
         (set, get) => ({
             ...INITIAL_STATE,
 
-            gainXp: (amount: number) => {
+            // Computed: effective max HP considering hollowing
+            getMaxHp: () => {
+                const state = get();
+                const reduction = state.hollowLevel * HOLLOW_CONFIG.hpReductionPerLevel;
+                return Math.floor(state.baseMaxHp * Math.max(HOLLOW_CONFIG.minHpPercent, 1 - reduction));
+            },
+
+            // Computed: attribute level from category XP
+            getAttributeLevel: (category: TaskCategory) => {
+                const state = get();
+                return getAttributeLevel(state.categoryXp[category]);
+            },
+
+            gainXp: (amount: number, category?: TaskCategory) => {
                 const state = get();
                 // Downed players gain 50% less XP
                 const effectiveAmount = state.isDowned ? Math.floor(amount * 0.5) : amount;
@@ -196,15 +256,33 @@ export const useGameStore = create<GameState>()(
                     newXpToLevel = getXpToLevel(newLevel);
                 }
 
+                // Also add to category XP bucket if category provided
+                const newCategoryXp = { ...state.categoryXp };
+                if (category) {
+                    newCategoryXp[category] += effectiveAmount;
+                }
+
                 set({
                     xp: newXp,
                     level: newLevel,
                     xpToLevel: newXpToLevel,
+                    categoryXp: newCategoryXp,
                 });
             },
 
             gainSouls: (amount: number) => {
-                set((state) => ({ souls: state.souls + amount }));
+                const state = get();
+                // Apply golden pine resin buff
+                const multiplier = state.activeBuffs.goldenPineResin ? 2 : 1;
+                const finalAmount = amount * multiplier;
+
+                set({
+                    souls: state.souls + finalAmount,
+                    activeBuffs: {
+                        ...state.activeBuffs,
+                        goldenPineResin: false  // Consume buff
+                    }
+                });
             },
 
             spendSouls: (amount: number) => {
@@ -216,20 +294,38 @@ export const useGameStore = create<GameState>()(
 
             loseHp: (amount: number) => {
                 const state = get();
-                const newHp = Math.max(0, state.hp - amount);
+                const maxHp = state.getMaxHp();
 
-                // Death: lose 50% of souls
+                // Apply ring of protection buff
+                const reduction = state.activeBuffs.ringOfProtection ? 0.5 : 1;
+                const actualDamage = Math.ceil(amount * reduction);
+                const newHp = Math.max(0, state.hp - actualDamage);
+
+                // Death: lose 50% of souls, gain hollow level
                 if (newHp === 0 && !state.isDowned) {
                     const soulsLost = Math.floor(state.souls * 0.5);
+                    const newHollowLevel = Math.min(
+                        state.hollowLevel + 1,
+                        HOLLOW_CONFIG.maxHollowLevel
+                    );
+
                     set({
                         hp: 0,
                         isDowned: true,
                         deathCount: state.deathCount + 1,
                         souls: state.souls - soulsLost,
                         soulsLostTotal: state.soulsLostTotal + soulsLost,
+                        hollowLevel: newHollowLevel,
+                        activeBuffs: { ...state.activeBuffs, ringOfProtection: false },
                     });
                 } else {
-                    set({ hp: newHp });
+                    set({
+                        hp: newHp,
+                        activeBuffs: {
+                            ...state.activeBuffs,
+                            ringOfProtection: false  // Consume buff
+                        }
+                    });
                 }
             },
 
@@ -241,32 +337,93 @@ export const useGameStore = create<GameState>()(
             },
 
             recoverHp: (amount: number) => {
-                set((state) => ({
-                    hp: Math.min(state.maxHp, state.hp + amount),
-                }));
+                const state = get();
+                const maxHp = state.getMaxHp();
+                set({
+                    hp: Math.min(maxHp, state.hp + amount),
+                });
             },
 
             useFlask: () => {
                 const state = get();
                 if (state.flasks <= 0 || state.isDowned) return false;
+                const maxHp = state.getMaxHp();
 
                 set({
                     flasks: state.flasks - 1,
-                    hp: Math.min(state.maxHp, state.hp + FLASK_CONFIG.healAmount),
+                    hp: Math.min(maxHp, state.hp + FLASK_CONFIG.healAmount),
                 });
                 return true;
             },
 
-            buyFlask: () => {
+            buyItem: (itemId: ShopItemId) => {
                 const state = get();
-                if (state.souls < FLASK_CONFIG.flaskCost) return false;
-                if (state.flasks >= state.maxFlasks) return false;
+                const item = SHOP_ITEMS[itemId];
+                if (!item) return false;
+                if (state.souls < item.cost) return false;
+                if (state.inventory[itemId] >= item.maxQuantity) return false;
 
                 set({
-                    souls: state.souls - FLASK_CONFIG.flaskCost,
-                    flasks: state.flasks + 1,
+                    souls: state.souls - item.cost,
+                    inventory: {
+                        ...state.inventory,
+                        [itemId]: state.inventory[itemId] + 1,
+                    },
                 });
                 return true;
+            },
+
+            useItem: (itemId: ShopItemId) => {
+                const state = get();
+                if (state.inventory[itemId] <= 0) return false;
+
+                const newInventory = {
+                    ...state.inventory,
+                    [itemId]: state.inventory[itemId] - 1,
+                };
+
+                switch (itemId) {
+                    case 'estus_flask':
+                        // Add to flask count
+                        if (state.flasks < state.maxFlasks) {
+                            set({
+                                inventory: newInventory,
+                                flasks: state.flasks + 1,
+                            });
+                            return true;
+                        }
+                        return false;
+
+                    case 'human_effigy':
+                        // Reduce hollow level by 1
+                        if (state.hollowLevel > 0) {
+                            set({
+                                inventory: newInventory,
+                                hollowLevel: state.hollowLevel - 1,
+                            });
+                            return true;
+                        }
+                        return false;
+
+                    case 'ring_of_protection':
+                        // Activate buff
+                        set({
+                            inventory: newInventory,
+                            activeBuffs: { ...state.activeBuffs, ringOfProtection: true },
+                        });
+                        return true;
+
+                    case 'golden_pine_resin':
+                        // Activate buff
+                        set({
+                            inventory: newInventory,
+                            activeBuffs: { ...state.activeBuffs, goldenPineResin: true },
+                        });
+                        return true;
+
+                    default:
+                        return false;
+                }
             },
 
             refillFlasks: () => {
@@ -274,19 +431,12 @@ export const useGameStore = create<GameState>()(
             },
 
             revive: () => {
-                set((state) => ({
+                const state = get();
+                const maxHp = state.getMaxHp();
+                set({
                     isDowned: false,
-                    hp: Math.ceil(state.maxHp * 0.25),
-                }));
-            },
-
-            incrementAttribute: (attr: AttributeType, amount = 0.1) => {
-                set((state) => ({
-                    attributes: {
-                        ...state.attributes,
-                        [attr]: state.attributes[attr] + amount,
-                    },
-                }));
+                    hp: Math.ceil(maxHp * 0.25),
+                });
             },
 
             updateCategoryStreak: (category: TaskCategory) => {
@@ -318,7 +468,7 @@ export const useGameStore = create<GameState>()(
                 set(INITIAL_STATE);
             },
 
-            addTask: (type: TaskType, title: string, category: TaskCategory = 'productivity') => {
+            addTask: (type: TaskType, title: string, category: TaskCategory = 'productivity', isCritical = false) => {
                 const newTask: Task = {
                     id: `${type}-${Date.now()}`,
                     title,
@@ -327,6 +477,7 @@ export const useGameStore = create<GameState>()(
                     baseSouls: BASE_REWARDS[type].souls,
                     baseXp: BASE_REWARDS[type].xp,
                     hpStake: BASE_REWARDS[type].hpStake,
+                    isCritical,
                 };
 
                 set((state) => {
@@ -353,24 +504,29 @@ export const useGameStore = create<GameState>()(
                 }
 
                 if (task) {
-                    const attribute = CATEGORY_ATTRIBUTE_MAP[task.category];
-                    const attributeLevel = state.attributes[attribute];
-                    const streakCount = state.categoryStreak[task.category];
+                    const category = task.category || 'productivity';
+                    const attributeLevel = getAttributeLevel(state.categoryXp[category]);
+                    const streakCount = state.categoryStreak[category];
 
                     // Calculate rewards with attribute bonus and streak penalty
-                    const soulsReward = calculateSoulsReward(task.baseSouls, attributeLevel, streakCount);
-                    const xpReward = calculateXpReward(task.baseXp, attributeLevel, streakCount);
+                    const soulsReward = calculateSoulsReward(
+                        task.baseSouls || BASE_REWARDS[type].souls,
+                        attributeLevel,
+                        streakCount
+                    );
+                    const xpReward = calculateXpReward(
+                        task.baseXp || BASE_REWARDS[type].xp,
+                        attributeLevel,
+                        streakCount
+                    );
 
-                    // Apply rewards
+                    // Apply rewards (XP goes to both global and category bucket)
                     state.gainSouls(soulsReward);
-                    state.gainXp(xpReward);
-                    state.recoverHp(Math.ceil(task.hpStake * 0.5));
-
-                    // Increment attribute (small amount: 0.1 per task)
-                    state.incrementAttribute(attribute, 0.1);
+                    state.gainXp(xpReward, category);
+                    state.recoverHp(Math.ceil((task.hpStake || BASE_REWARDS[type].hpStake) * 0.5));
 
                     // Update category streak
-                    state.updateCategoryStreak(task.category);
+                    state.updateCategoryStreak(category);
                 }
 
                 // Remove completed todos
@@ -392,8 +548,25 @@ export const useGameStore = create<GameState>()(
                 }
 
                 if (task) {
-                    // No rewards on failure - just lose HP stake
-                    state.loseHp(task.hpStake);
+                    const category = task.category || 'productivity';
+
+                    // Critical habit fail = instant death
+                    if (task.isCritical && type === 'habit') {
+                        const maxHp = state.getMaxHp();
+                        state.loseHp(maxHp); // Instant death
+                    } else {
+                        // Normal failure - deduct HP and category XP
+                        state.loseHp(task.hpStake || BASE_REWARDS[type].hpStake);
+
+                        // Deduct XP from category bucket
+                        const xpPenalty = Math.floor((task.baseXp || BASE_REWARDS[type].xp) * 0.5);
+                        set((s) => ({
+                            categoryXp: {
+                                ...s.categoryXp,
+                                [category]: Math.max(0, s.categoryXp[category] - xpPenalty),
+                            },
+                        }));
+                    }
                 }
             },
 
@@ -411,33 +584,53 @@ export const useGameStore = create<GameState>()(
         }),
         {
             name: 'dopamine-strategy-game',
-            version: 2, // Bumped version for migration
+            version: 3, // Bumped for v3 migration
             migrate: (persistedState: unknown, version: number) => {
                 const state = persistedState as Record<string, unknown>;
 
-                // Migration from v1 (or no version) to v2
-                if (version < 2) {
+                // Migration to v3
+                if (version < 3) {
                     // Handle old flasks object format
                     if (state.flasks && typeof state.flasks === 'object') {
                         const oldFlasks = state.flasks as { current?: number; max?: number };
                         state.flasks = oldFlasks.current ?? 1;
-                        state.maxFlasks = oldFlasks.max ?? 1;
+                        state.maxFlasks = oldFlasks.max ?? FLASK_CONFIG.maxFlasks;
                     }
 
-                    // Add missing new fields with defaults
-                    if (state.souls === undefined) state.souls = 0;
-                    if (state.soulsLostTotal === undefined) state.soulsLostTotal = 0;
-                    if (state.attributes === undefined) {
-                        state.attributes = {
-                            intelligence: 1,
-                            endurance: 1,
-                            strength: 1,
-                            vitality: 1,
-                            insight: 1,
-                            charisma: 1,
+                    // Add categoryXp if missing
+                    if (!state.categoryXp) {
+                        state.categoryXp = { ...DEFAULT_CATEGORY_XP };
+                    }
+
+                    // Add hollowing if missing
+                    if (state.hollowLevel === undefined) state.hollowLevel = 0;
+                    if (state.baseMaxHp === undefined) state.baseMaxHp = state.maxHp ?? STARTING_HP;
+
+                    // Add inventory if missing
+                    if (!state.inventory) {
+                        state.inventory = {
+                            estus_flask: 0,
+                            human_effigy: 0,
+                            ring_of_protection: 0,
+                            golden_pine_resin: 0,
                         };
                     }
-                    if (state.categoryStreak === undefined) {
+
+                    // Add activeBuffs if missing
+                    if (!state.activeBuffs) {
+                        state.activeBuffs = {
+                            ringOfProtection: false,
+                            goldenPineResin: false,
+                        };
+                    }
+
+                    // Remove old attributes (now computed from categoryXp)
+                    delete state.attributes;
+
+                    // Add missing fields
+                    if (state.souls === undefined) state.souls = 0;
+                    if (state.soulsLostTotal === undefined) state.soulsLostTotal = 0;
+                    if (!state.categoryStreak) {
                         state.categoryStreak = {
                             productivity: 0,
                             sports: 0,

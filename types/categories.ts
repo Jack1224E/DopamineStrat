@@ -118,17 +118,30 @@ export const ATTRIBUTE_INFO: Record<AttributeType, {
     },
 };
 
-// Default attributes (all start at 1)
-export const DEFAULT_ATTRIBUTES: Record<AttributeType, number> = {
-    intelligence: 1,
-    endurance: 1,
-    strength: 1,
-    vitality: 1,
-    insight: 1,
-    charisma: 1,
+// Default attributes (all start at 0 - computed from categoryXp)
+export const DEFAULT_CATEGORY_XP: Record<TaskCategory, number> = {
+    productivity: 0,
+    sports: 0,
+    fitness: 0,
+    self_care: 0,
+    creativity: 0,
+    social: 0,
 };
 
-// Calculate bonus multiplier from attribute level
+// Compute attribute level from category XP (100 XP = 1 level)
+export const XP_PER_ATTRIBUTE_LEVEL = 100;
+
+export function getAttributeLevel(categoryXp: number): number {
+    return Math.floor(categoryXp / XP_PER_ATTRIBUTE_LEVEL);
+}
+
+// Calculate XP multiplier from attribute level
+// Formula: 1 + (level * 0.1) = 10% bonus per level
+export function getXpMultiplier(attributeLevel: number): number {
+    return 1 + (attributeLevel * 0.1);
+}
+
+// Calculate bonus multiplier from attribute level (for Souls)
 // Formula: 1 + (level * 0.05) = 5% bonus per level
 export function getAttributeBonus(level: number): number {
     return 1 + (level * 0.05);
@@ -150,20 +163,20 @@ export function calculateSoulsReward(
     return Math.floor(baseSouls * attributeBonus * streakPenalty);
 }
 
-// Calculate XP reward for a task
+// Calculate XP reward for a task (with new 10% multiplier)
 export function calculateXpReward(
     baseXp: number,
     attributeLevel: number,
     streakCount: number
 ): number {
-    const attributeBonus = getAttributeBonus(attributeLevel);
+    const xpMultiplier = getXpMultiplier(attributeLevel);
 
     // Same diminishing returns
     const streakPenalty = streakCount >= 3
         ? Math.max(0.5, 1 - (streakCount - 2) * 0.15)
         : 1;
 
-    return Math.floor(baseXp * attributeBonus * streakPenalty);
+    return Math.floor(baseXp * xpMultiplier * streakPenalty);
 }
 
 // Base rewards by task type
@@ -173,9 +186,68 @@ export const BASE_REWARDS = {
     todo: { souls: 25, xp: 10, hpStake: 5 },
 } as const;
 
-// Flask constants
+// Hollowing config
+export const HOLLOW_CONFIG = {
+    maxHollowLevel: 5,           // Max hollow levels
+    hpReductionPerLevel: 0.1,    // 10% HP reduction per level
+    minHpPercent: 0.5,           // Minimum 50% HP at max hollow
+} as const;
+
+// Shop items
+export type ShopItemId =
+    | 'estus_flask'
+    | 'human_effigy'
+    | 'ring_of_protection'
+    | 'golden_pine_resin';
+
+export interface ShopItem {
+    id: ShopItemId;
+    name: string;
+    description: string;
+    cost: number;
+    effect: string;
+    maxQuantity: number;
+}
+
+export const SHOP_ITEMS: Record<ShopItemId, ShopItem> = {
+    estus_flask: {
+        id: 'estus_flask',
+        name: 'Estus Flask',
+        description: 'A warm, golden liquid that restores HP',
+        cost: 100,
+        effect: 'Heal 25 HP',
+        maxQuantity: 3,
+    },
+    human_effigy: {
+        id: 'human_effigy',
+        name: 'Human Effigy',
+        description: 'Restores your humanity and reverses hollowing',
+        cost: 150,
+        effect: 'Remove 1 hollow level, restore max HP',
+        maxQuantity: 5,
+    },
+    ring_of_protection: {
+        id: 'ring_of_protection',
+        name: 'Ring of Protection',
+        description: 'Reduces HP loss from failed tasks',
+        cost: 200,
+        effect: 'Next task failure costs 50% less HP',
+        maxQuantity: 3,
+    },
+    golden_pine_resin: {
+        id: 'golden_pine_resin',
+        name: 'Golden Pine Resin',
+        description: 'Enhances your next task completion',
+        cost: 75,
+        effect: 'Next completed task grants 2x Souls',
+        maxQuantity: 5,
+    },
+};
+
+// Flask constants (simplified)
 export const FLASK_CONFIG = {
-    maxFlasks: 1,           // Max flasks player can have
+    maxFlasks: 3,           // Max flasks player can have
     healAmount: 25,         // HP healed per flask
     flaskCost: 100,         // Souls cost to buy a flask
 } as const;
+

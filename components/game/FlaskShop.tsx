@@ -2,27 +2,54 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/store/gameStore';
-import { Coins, X, Heart, ShoppingBag } from 'lucide-react';
+import { Coins, X, Heart, ShoppingBag, Package, Sparkles, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { FLASK_CONFIG } from '@/types/categories';
+import { SHOP_ITEMS, type ShopItemId } from '@/types/categories';
 
 interface FlaskShopProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
+const ITEM_ICONS: Record<ShopItemId, React.ReactNode> = {
+    estus_flask: <span className="text-2xl">🧪</span>,
+    human_effigy: <span className="text-2xl">👤</span>,
+    ring_of_protection: <Shield className="w-6 h-6 text-blue-400" />,
+    golden_pine_resin: <Sparkles className="w-6 h-6 text-yellow-400" />,
+};
+
 export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
-    const { souls, flasks, maxFlasks, buyFlask } = useGameStore();
+    const { souls, inventory, activeBuffs, hollowLevel, buyItem, useItem } = useGameStore();
 
-    const canAfford = souls >= FLASK_CONFIG.flaskCost;
-    const hasSpace = flasks < maxFlasks;
-    const canBuy = canAfford && hasSpace;
+    const items = Object.values(SHOP_ITEMS);
 
-    const handleBuy = () => {
-        if (buyFlask()) {
-            // Success - could add sound/animation here
+    const handleBuy = (itemId: ShopItemId) => {
+        if (buyItem(itemId)) {
+            // Success feedback could go here
         }
+    };
+
+    const handleUse = (itemId: ShopItemId) => {
+        if (useItem(itemId)) {
+            // Success feedback could go here
+        }
+    };
+
+    const canBuy = (itemId: ShopItemId) => {
+        const item = SHOP_ITEMS[itemId];
+        return souls >= item.cost && inventory[itemId] < item.maxQuantity;
+    };
+
+    const canUse = (itemId: ShopItemId) => {
+        if (inventory[itemId] <= 0) return false;
+
+        // Special conditions
+        if (itemId === 'human_effigy' && hollowLevel <= 0) return false;
+        if (itemId === 'ring_of_protection' && activeBuffs.ringOfProtection) return false;
+        if (itemId === 'golden_pine_resin' && activeBuffs.goldenPineResin) return false;
+
+        return true;
     };
 
     return (
@@ -33,103 +60,172 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    onClick={onClose}
                 >
                     {/* Backdrop */}
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-
-                    {/* Shop Modal */}
                     <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.9, opacity: 0 }}
-                        onClick={(e) => e.stopPropagation()}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                        onClick={onClose}
+                    />
+
+                    {/* Modal */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         className={cn(
-                            "relative z-10 w-full max-w-sm",
-                            "bg-gradient-to-b from-slate-800 to-slate-900",
-                            "border-2 border-amber-500/30 rounded-2xl shadow-2xl"
+                            "relative z-10 w-full max-w-lg",
+                            "bg-gradient-to-br from-slate-900 to-slate-800",
+                            "rounded-2xl border border-amber-500/30",
+                            "shadow-2xl shadow-amber-500/10"
                         )}
                     >
                         {/* Header */}
-                        <div className="p-6 border-b border-slate-700 bg-gradient-to-r from-amber-900/30 to-orange-900/30">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg">
-                                        <ShoppingBag className="w-6 h-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl font-bold text-white">Flask Shop</h2>
-                                        <p className="text-amber-400/80 text-sm">Restore your health</p>
-                                    </div>
+                        <div className="flex items-center justify-between p-4 border-b border-slate-700">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-amber-500/20">
+                                    <ShoppingBag className="w-6 h-6 text-amber-400" />
                                 </div>
-                                <button
+                                <div>
+                                    <h2 className="text-xl font-bold text-white">Bonfire Shop</h2>
+                                    <p className="text-xs text-slate-400">Rest and resupply</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                {/* Souls Display */}
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
+                                    <Coins className="w-4 h-4 text-cyan-400" />
+                                    <span className="font-bold text-cyan-300">{souls}</span>
+                                </div>
+
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
                                     onClick={onClose}
-                                    className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+                                    className="rounded-full hover:bg-slate-700"
                                 >
-                                    <X className="w-5 h-5 text-slate-400" />
-                                </button>
+                                    <X className="w-5 h-5" />
+                                </Button>
                             </div>
                         </div>
 
-                        {/* Souls Balance */}
-                        <div className="p-4 border-b border-slate-700">
-                            <div className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-cyan-900/30 border border-cyan-500/30">
-                                <Coins className="w-5 h-5 text-cyan-400" />
-                                <span className="text-2xl font-bold text-cyan-300">{souls}</span>
-                                <span className="text-sm text-cyan-400/60">Souls</span>
-                            </div>
-                        </div>
-
-                        {/* Flask Item */}
-                        <div className="p-6">
-                            <div className={cn(
-                                "p-4 rounded-xl border transition-all",
-                                "bg-slate-800/50",
-                                canBuy
-                                    ? "border-amber-500/50 hover:border-amber-400"
-                                    : "border-slate-700 opacity-60"
-                            )}>
-                                <div className="flex items-center gap-4">
-                                    {/* Flask visual */}
-                                    <div className="relative w-12 h-16 rounded-b-lg rounded-t-sm border-2 border-amber-500/50 bg-slate-800 flex items-end justify-center overflow-hidden">
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-2.5 rounded-t bg-amber-600" />
-                                        <div className="absolute bottom-0 left-0 right-0 h-[70%] bg-gradient-to-t from-amber-600 via-orange-500 to-amber-400" />
-                                    </div>
-
-                                    <div className="flex-1">
-                                        <h3 className="font-semibold text-white">Estus Flask</h3>
-                                        <p className="text-sm text-slate-400">Restores {FLASK_CONFIG.healAmount} HP</p>
-                                        <div className="flex items-center gap-1 mt-2 text-amber-400">
-                                            <Coins className="w-4 h-4" />
-                                            <span className="font-bold">{FLASK_CONFIG.flaskCost}</span>
-                                            <span className="text-sm text-slate-500">Souls</span>
+                        {/* Active Buffs */}
+                        {(activeBuffs.ringOfProtection || activeBuffs.goldenPineResin) && (
+                            <div className="mx-4 mt-4 p-3 rounded-lg bg-purple-500/10 border border-purple-500/30">
+                                <div className="text-xs font-medium text-purple-400 mb-2">Active Buffs</div>
+                                <div className="flex gap-2">
+                                    {activeBuffs.ringOfProtection && (
+                                        <div className="flex items-center gap-1 px-2 py-1 rounded bg-blue-500/20 text-xs text-blue-400">
+                                            <Shield className="w-3 h-3" />
+                                            Protection
                                         </div>
-                                    </div>
-
-                                    <div className="flex flex-col items-end gap-2">
-                                        <span className="text-xs text-slate-400">
-                                            {flasks}/{maxFlasks}
-                                        </span>
-                                        <Button
-                                            size="sm"
-                                            disabled={!canBuy}
-                                            onClick={handleBuy}
-                                            className={cn(
-                                                "min-w-[80px]",
-                                                canBuy
-                                                    ? "bg-amber-600 hover:bg-amber-500"
-                                                    : "bg-slate-700 text-slate-400"
-                                            )}
-                                        >
-                                            {!hasSpace ? "Full" : !canAfford ? "Need Souls" : "Buy"}
-                                        </Button>
-                                    </div>
+                                    )}
+                                    {activeBuffs.goldenPineResin && (
+                                        <div className="flex items-center gap-1 px-2 py-1 rounded bg-yellow-500/20 text-xs text-yellow-400">
+                                            <Sparkles className="w-3 h-3" />
+                                            2x Souls
+                                        </div>
+                                    )}
                                 </div>
                             </div>
+                        )}
 
-                            {/* Warning */}
-                            <p className="mt-4 text-xs text-center text-slate-500">
-                                ⚠️ Souls are lost on death! Spend or risk losing them.
+                        {/* Shop Items */}
+                        <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+                            {items.map((item) => {
+                                const owned = inventory[item.id];
+                                const canBuyThis = canBuy(item.id);
+                                const canUseThis = canUse(item.id);
+
+                                return (
+                                    <motion.div
+                                        key={item.id}
+                                        className={cn(
+                                            "p-4 rounded-xl border transition-all",
+                                            "bg-slate-800/50",
+                                            canBuyThis
+                                                ? "border-slate-600 hover:border-amber-500/50"
+                                                : "border-slate-700 opacity-70"
+                                        )}
+                                    >
+                                        <div className="flex items-start gap-4">
+                                            {/* Icon */}
+                                            <div className={cn(
+                                                "w-12 h-12 rounded-lg flex items-center justify-center",
+                                                "bg-gradient-to-br from-slate-700 to-slate-800",
+                                                "border border-slate-600"
+                                            )}>
+                                                {ITEM_ICONS[item.id]}
+                                            </div>
+
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="font-bold text-white">{item.name}</h3>
+                                                    {owned > 0 && (
+                                                        <span className="px-2 py-0.5 rounded bg-slate-700 text-xs text-slate-300">
+                                                            x{owned}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-slate-400 mt-0.5">
+                                                    {item.description}
+                                                </p>
+                                                <p className="text-xs text-emerald-400 mt-1">
+                                                    ✦ {item.effect}
+                                                </p>
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="flex flex-col gap-2">
+                                                {/* Buy Button */}
+                                                <Button
+                                                    size="sm"
+                                                    onClick={() => handleBuy(item.id)}
+                                                    disabled={!canBuyThis}
+                                                    className={cn(
+                                                        "min-w-[100px]",
+                                                        canBuyThis
+                                                            ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500"
+                                                            : "bg-slate-700"
+                                                    )}
+                                                >
+                                                    <Coins className="w-3 h-3 mr-1" />
+                                                    {item.cost}
+                                                </Button>
+
+                                                {/* Use Button */}
+                                                {owned > 0 && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => handleUse(item.id)}
+                                                        disabled={!canUseThis}
+                                                        className={cn(
+                                                            "min-w-[100px]",
+                                                            canUseThis
+                                                                ? "border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10"
+                                                                : "opacity-50"
+                                                        )}
+                                                    >
+                                                        Use
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-4 border-t border-slate-700">
+                            <p className="text-xs text-center text-slate-500">
+                                {hollowLevel > 0 && "⚠️ Use Human Effigy to reverse hollowing"}
+                                {hollowLevel === 0 && "Rest at the bonfire, Chosen Undead"}
                             </p>
                         </div>
                     </motion.div>
