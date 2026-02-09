@@ -522,13 +522,9 @@ export const useGameStore = create<GameState>()(
                 if (task) {
                     const category = task.category || 'productivity';
                     const attributeLevel = getAttributeLevel(state.categoryXp[category]);
-                    const streakCount = state.categoryStreak[category];
 
-                    // Get base souls value
-                    const baseSouls = task.baseSouls || BASE_REWARDS[type].souls;
-
-                    // Calculate souls reward (can still have streak penalty)
-                    const soulsReward = calculateSoulsReward(baseSouls, attributeLevel, streakCount);
+                    // Get souls reward from dedicated function (for LLM integration later)
+                    const soulsReward = getSoulsReward(taskId);
 
                     // XP formula: 1 + attributeLevel
                     const xpGained = 1 + attributeLevel;
