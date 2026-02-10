@@ -132,17 +132,16 @@ export function BoardToolbar() {
                         size="lg"
                         onClick={() => setIsTaskModalOpen(true)}
                         className={cn(
-                            "w-full md:w-auto h-10 px-6 gap-2",
-                            "bg-[var(--primary)] text-[var(--primary-foreground)]",
-                            "hover:bg-[var(--primary)]/90 shadow-[var(--shadow-glow)]",
-                            "font-semibold tracking-wide"
+                            "w-full md:w-auto h-11 px-6 gap-2 rounded-xl",
+                            "bg-green-500 text-black",
+                            "hover:bg-green-400 active:bg-green-600",
+                            "font-bold tracking-wide text-sm",
+                            "shadow-lg shadow-green-500/25",
+                            "transition-all duration-150"
                         )}
                     >
                         <Plus className="w-5 h-5" />
-                        <span>Add Task</span>
-                        <kbd className="hidden md:inline-flex ml-2 h-5 items-center justify-center rounded bg-black/20 px-1.5 font-mono text-[10px] font-medium text-white/70">
-                            A
-                        </kbd>
+                        Add Task
                     </Button>
                 </div>
             </div >

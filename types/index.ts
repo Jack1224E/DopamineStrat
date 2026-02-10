@@ -43,6 +43,7 @@ export interface Task {
     hpStake: number;                // HP cost on failure
     isCritical?: boolean;           // Critical habit fail = instant death
     completed?: boolean;
+    completedAt?: string;           // ISO date string for when task was completed
 }
 
 // Difficulty display info

@@ -108,12 +108,14 @@ export function RewardColumn({ rewards: propRewards }: RewardColumnProps) {
             {/* Rewards List */}
             <div className="flex flex-col gap-3 pb-8">
                 {rewards.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-slate-500 border-2 border-dashed border-slate-800 rounded-xl bg-slate-900/30">
-                        <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mb-3">
-                            <Coins className="w-6 h-6 opacity-50" />
+                    <div className="flex flex-col items-center justify-center py-12 text-slate-400 border-2 border-dashed border-slate-700 rounded-xl bg-slate-900/30">
+                        <div className="w-14 h-14 rounded-full bg-slate-800 flex items-center justify-center mb-3 shadow-inner">
+                            <span className="text-2xl">🏆</span>
                         </div>
-                        <p className="text-sm font-medium">No rewards yet</p>
-                        <p className="text-xs opacity-60 mt-1">Add something to strive for!</p>
+                        <p className="text-sm font-semibold text-slate-300">No rewards yet</p>
+                        <p className="text-xs text-slate-500 mt-1 text-center max-w-[200px]">
+                            Create rewards to spend your hard-earned Souls on!
+                        </p>
                     </div>
                 ) : (
                     <AnimatePresence mode="popLayout">

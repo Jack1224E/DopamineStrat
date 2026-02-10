@@ -602,9 +602,19 @@ export const useGameStore = create<GameState>()(
                     set((s) => ({ history: [...s.history, historyEntry] }));
                 }
 
-                // Remove completed todos
-                if (type === 'todo') {
-                    set((s) => ({ todos: s.todos.filter((t) => t.id !== taskId) }));
+                // Mark dailies and todos as completed (keep them in the list for Done tab)
+                if (type === 'daily') {
+                    set((s) => ({
+                        dailies: s.dailies.map((t) =>
+                            t.id === taskId ? { ...t, completed: true, completedAt: new Date().toISOString() } : t
+                        ),
+                    }));
+                } else if (type === 'todo') {
+                    set((s) => ({
+                        todos: s.todos.map((t) =>
+                            t.id === taskId ? { ...t, completed: true, completedAt: new Date().toISOString() } : t
+                        ),
+                    }));
                 }
             },
 

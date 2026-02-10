@@ -51,8 +51,10 @@ export function RewardCard({ reward }: RewardCardProps) {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className={cn(
                     "relative group flex flex-col gap-3 p-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)]",
-                    "bg-[var(--surface-1)] hover:bg-[var(--surface-2)] hover:border-[var(--border-strong)] transition-all",
-                    !canAfford && "opacity-70 grayscale-[0.3]"
+                    "bg-[var(--surface-1)] hover:bg-[var(--surface-2)] hover:border-[var(--border-strong)]",
+                    "shadow-[0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.5)]",
+                    "transition-all duration-200",
+                    !canAfford && "opacity-60 grayscale-[0.2]"
                 )}
             >
                 {/* Header: Icon + Title + Menu */}

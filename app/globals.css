@@ -117,7 +117,8 @@
   --xp-bar: 142 76% 36%;
 }
 
-[data-theme="cyberpunk"] {
+[data-theme="cyberpunk"],
+.dark {
   --radius: 0.625rem;
   /* Semantic Tokens for Cool UI */
   --surface-0: oklch(0.12 0.02 270);
@@ -136,8 +137,8 @@
   /* Spotify Green Theme */
   --primary: oklch(0.65 0.22 145);
   /* #1DB954 vibrant green */
-  --primary-foreground: oklch(0.15 0.05 145);
-  /* Dark text on green button for high contrast */
+  --primary-foreground: oklch(0.14 0.05 145);
+  /* Very dark green/black text for max contrast */
 
   --secondary: oklch(0.28 0.05 145);
   --secondary-foreground: oklch(0.9 0.05 145);

@@ -1,13 +1,14 @@
 'use client';
 
-import { Sun, Moon, Volume2, VolumeX, RotateCcw } from 'lucide-react';
+import Link from 'next/link';
+import { Sun, Moon, Volume2, VolumeX, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/store/gameStore';
 import { useTheme } from '@/lib/theme-context';
 
 export function Header() {
     const { theme, toggleTheme } = useTheme();
-    const { soundEnabled, toggleSound, resetStats } = useGameStore();
+    const { soundEnabled, toggleSound } = useGameStore();
 
     return (
         <header className="flex items-center justify-between p-4 border-b border-border bg-card/50 backdrop-blur-sm">
@@ -16,6 +17,17 @@ export function Header() {
             </h1>
 
             <div className="flex items-center gap-2">
+                <Link href="/docs">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Game Docs & Roadmap"
+                        className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                    >
+                        <BookOpen className="w-5 h-5" />
+                    </Button>
+                </Link>
+
                 <Button
                     variant="ghost"
                     size="icon"
@@ -41,16 +53,8 @@ export function Header() {
                         <Sun className="w-5 h-5" />
                     )}
                 </Button>
-
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={resetStats}
-                    title="Reset stats"
-                >
-                    <RotateCcw className="w-5 h-5" />
-                </Button>
             </div>
         </header>
     );
 }
+

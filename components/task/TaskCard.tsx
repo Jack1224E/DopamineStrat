@@ -11,6 +11,16 @@ import { format, isToday, isTomorrow, isPast, isThisWeek } from 'date-fns';
 import type { Task } from '@/types';
 import { CATEGORY_INFO } from '@/types/categories';
 import { cn } from '@/lib/utils';
+
+// Map category text colors to border colors for left accent
+const CATEGORY_BORDER_COLOR: Record<string, string> = {
+    productivity: 'border-l-blue-400',
+    sports: 'border-l-green-400',
+    fitness: 'border-l-red-400',
+    self_care: 'border-l-pink-400',
+    creativity: 'border-l-purple-400',
+    social: 'border-l-yellow-400',
+};
 import { TaskEditModal } from './TaskEditModal';
 
 interface TaskCardProps {
@@ -40,9 +50,10 @@ function formatDueDate(dateStr: string): { text: string; color: string } {
 
 export function TaskCard({ task, compact = false }: TaskCardProps) {
     const { soundEnabled, completeTask, failTask, updateTask, deleteTask, toggleChecklistItem } = useGameStore();
-    const [isCompleted, setIsCompleted] = useState(false);
+    const isCompleted = task.completed ?? false;
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+    const [showReward, setShowReward] = useState(false);
 
     // Fallback for tasks without category (legacy data)
     const category = task.category || 'productivity';
@@ -83,10 +94,11 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
             });
         }
 
-        // For todos/dailies, mark as completed
-        if (task.type !== 'habit') {
-            setIsCompleted(true);
-        }
+        // Store handles marking task.completed = true
+
+        // Show floating reward text
+        setShowReward(true);
+        setTimeout(() => setShowReward(false), 1200);
     };
 
     const handleNegative = () => {
@@ -124,11 +136,30 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                     onClick={() => setIsEditOpen(true)}
                     className={cn(
                         "relative group grid grid-cols-[auto_1fr_auto] gap-3 p-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)]",
-                        "bg-[var(--surface-1)] hover:bg-[var(--surface-2)] hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]",
+                        "bg-[var(--surface-1)] hover:bg-[var(--surface-2)] hover:border-[var(--border-strong)]",
+                        "shadow-[0_2px_8px_rgba(0,0,0,0.3)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.5)]",
                         "transition-all duration-200 cursor-pointer",
-                        isCompleted && "opacity-60 bg-[var(--surface-0)] border-dashed grayscale-[0.5]"
+                        "border-l-[3px]",
+                        CATEGORY_BORDER_COLOR[category] || 'border-l-slate-500',
+                        isCompleted && "opacity-50 bg-[var(--surface-0)] border-dashed grayscale-[0.5]"
                     )}
                 >
+                    {/* Floating reward notification */}
+                    <AnimatePresence>
+                        {showReward && (
+                            <motion.div
+                                initial={{ opacity: 1, y: 0 }}
+                                animate={{ opacity: 0, y: -40 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 1, ease: 'easeOut' }}
+                                className="absolute top-0 right-3 z-20 pointer-events-none flex items-center gap-2"
+                            >
+                                <span className="text-sm font-bold text-cyan-400 drop-shadow-[0_0_6px_rgba(34,211,238,0.5)]">
+                                    +{task.baseSouls || 5} Souls
+                                </span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     {/* Left: Action Button (Check/Plus/Minus) */}
                     <div className="flex flex-col items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
                         {task.type === 'habit' ? (

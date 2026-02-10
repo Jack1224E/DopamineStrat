@@ -81,15 +81,15 @@ export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps)
                                 className={cn(
                                     "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-[var(--radius-sm)] transition-all",
                                     activeTab === tab.id
-                                        ? "bg-[var(--surface-2)] text-[var(--primary)] shadow-sm"
-                                        : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-2)]/50"
+                                        ? "bg-green-500/15 text-green-400 font-bold shadow-sm border border-green-500/20"
+                                        : "text-slate-400 hover:text-slate-200 hover:bg-[var(--surface-2)]/50"
                                 )}
                             >
                                 {tab.label}
                                 {tab.count > 0 && (
                                     <span className={cn(
-                                        "px-1.5 py-0.5 rounded-full text-[10px] bg-[var(--surface-0)]",
-                                        activeTab === tab.id ? "text-[var(--primary)]" : "text-[var(--text-muted)]"
+                                        "px-1.5 py-0.5 rounded-full text-[10px]",
+                                        activeTab === tab.id ? "bg-green-500/20 text-green-400 font-bold" : "bg-[var(--surface-0)] text-slate-400"
                                     )}>
                                         {tab.count}
                                     </span>
@@ -124,9 +124,9 @@ export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps)
                 ) : (
                     <button
                         onClick={() => setIsInputVisible(true)}
-                        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--surface-0)]/50 hover:bg-[var(--surface-2)] border border-transparent hover:border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all text-sm group"
+                        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-md)] bg-emerald-500/5 hover:bg-emerald-500/10 border border-dashed border-emerald-500/30 hover:border-emerald-500/50 text-emerald-400/70 hover:text-emerald-400 transition-all text-sm font-medium group"
                     >
-                        <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        <Plus className="w-4 h-4 group-hover:scale-110 group-hover:rotate-90 transition-transform duration-200" />
                         {placeholder}
                     </button>
                 )}
