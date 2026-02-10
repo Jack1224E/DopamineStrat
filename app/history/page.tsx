@@ -102,7 +102,7 @@ export default function HistoryPage() {
                     {(['all', 'habit', 'daily', 'todo'] as const).map((type) => (
                         <button
                             key={type}
-                            onClick={() => setFilterType(type)}
+                            onClick={() => { setFilterType(type); }}
                             className={cn(
                                 "px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
                                 filterType === type

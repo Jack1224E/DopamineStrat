@@ -45,7 +45,7 @@ export function BoardToolbar() {
             }
         };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        return () => { window.removeEventListener('keydown', handleKeyDown); };
     }, [isSearchFocused, isTaskModalOpen, filters, clearFilters]);
 
     const handleCreateTask = (taskData: Partial<Task>) => {
@@ -75,8 +75,8 @@ export function BoardToolbar() {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearch(e.target.value)}
-                                onFocus={() => setIsSearchFocused(true)}
-                                onBlur={() => setIsSearchFocused(false)}
+                                onFocus={() => { setIsSearchFocused(true); }}
+                                onBlur={() => { setIsSearchFocused(false); }}
                                 placeholder="Search tasks..."
                                 className={cn(
                                     "w-full pl-9 pr-10 py-2.5 rounded-[var(--radius-md)]",
@@ -130,7 +130,7 @@ export function BoardToolbar() {
                     {/* Right: Add Task */}
                     <Button
                         size="lg"
-                        onClick={() => setIsTaskModalOpen(true)}
+                        onClick={() => { setIsTaskModalOpen(true); }}
                         className={cn(
                             "w-full md:w-auto h-11 px-6 gap-2 rounded-xl",
                             "bg-green-500 text-black",
@@ -149,7 +149,7 @@ export function BoardToolbar() {
             {/* Task Creation Modal */}
             < TaskEditModal
                 isOpen={isTaskModalOpen}
-                onClose={() => setIsTaskModalOpen(false)
+                onClose={() => { setIsTaskModalOpen(false); }
                 }
                 task={{ id: '', title: '', type: 'todo' } as Task} // Empty task for creation
                 taskType="todo"

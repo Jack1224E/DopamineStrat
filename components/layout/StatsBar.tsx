@@ -119,7 +119,7 @@ export function StatsBar({ onShopClick }: StatsBarProps) {
 
     return (
         <>
-            {!onShopClick && <FlaskShop isOpen={internalShowShop} onClose={() => setInternalShowShop(false)} />}
+            {!onShopClick && <FlaskShop isOpen={internalShowShop} onClose={() => { setInternalShowShop(false); }} />}
 
             {/* Reset Confirmation Modal */}
             <AnimatePresence>
@@ -129,7 +129,7 @@ export function StatsBar({ onShopClick }: StatsBarProps) {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-                        onClick={() => setShowResetModal(false)}
+                        onClick={() => { setShowResetModal(false); }}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
@@ -269,7 +269,7 @@ export function StatsBar({ onShopClick }: StatsBarProps) {
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setIsExpanded(!isExpanded)}
+                        onClick={() => { setIsExpanded(!isExpanded); }}
                         className="shrink-0 h-8 w-8 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 text-slate-200 hover:text-white"
                     >
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -456,7 +456,7 @@ export function StatsBar({ onShopClick }: StatsBarProps) {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => setShowResetModal(true)}
+                                            onClick={() => { setShowResetModal(true); }}
                                             className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/50"
                                         >
                                             <RotateCcw className="w-3.5 h-3.5 mr-2" />

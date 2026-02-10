@@ -16,7 +16,7 @@ interface RewardColumnProps {
 
 export function RewardColumn({ rewards: propRewards }: RewardColumnProps) {
     const { rewards: storeRewards, addReward } = useGameStore();
-    const rewards = propRewards || storeRewards; // Use prop if available, else store
+    const rewards = propRewards ?? storeRewards; // Use prop if available, else store
 
     const [isAdding, setIsAdding] = useState(false);
 
@@ -47,7 +47,7 @@ export function RewardColumn({ rewards: propRewards }: RewardColumnProps) {
                 <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setIsAdding(!isAdding)}
+                    onClick={() => { setIsAdding(!isAdding); }}
                     className={cn(
                         "h-8 w-8 p-0 rounded-full transition-all",
                         isAdding
@@ -74,7 +74,7 @@ export function RewardColumn({ rewards: propRewards }: RewardColumnProps) {
                                 type="text"
                                 placeholder="Reward title..."
                                 value={newRewardTitle}
-                                onChange={(e) => setNewRewardTitle(e.target.value)}
+                                onChange={(e) => { setNewRewardTitle(e.target.value); }}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddReward()}
                                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 placeholder:text-slate-600"
                             />
@@ -86,7 +86,7 @@ export function RewardColumn({ rewards: propRewards }: RewardColumnProps) {
                                     <input
                                         type="number"
                                         value={newRewardCost}
-                                        onChange={(e) => setNewRewardCost(Number(e.target.value))}
+                                        onChange={(e) => { setNewRewardCost(Number(e.target.value)); }}
                                         onKeyDown={(e) => e.key === 'Enter' && handleAddReward()}
                                         className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-2 py-2 text-sm text-white focus:outline-none focus:border-amber-500 font-mono"
                                     />

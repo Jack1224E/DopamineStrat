@@ -115,7 +115,7 @@ function Progress({
 
       {showValue && (
         <div className="flex justify-between items-center text-xs text-muted-foreground px-1">
-          <span>{valueLabel || "Progress"}</span>
+          <span>{valueLabel ?? "Progress"}</span>
           <span className="font-medium">{Math.round(safeValue)}%</span>
         </div>
       )}

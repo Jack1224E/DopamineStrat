@@ -98,7 +98,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
 
         // Show floating reward text
         setShowReward(true);
-        setTimeout(() => setShowReward(false), 1200);
+        setTimeout(() => { setShowReward(false); }, 1200);
     };
 
     const handleNegative = () => {
@@ -133,7 +133,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                     exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                     whileHover={{ scale: 1.01, y: -2 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                    onClick={() => setIsEditOpen(true)}
+                    onClick={() => { setIsEditOpen(true); }}
                     className={cn(
                         "relative group grid grid-cols-[auto_1fr_auto] gap-3 p-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)]",
                         "bg-[var(--surface-1)] hover:bg-[var(--surface-2)] hover:border-[var(--border-strong)]",
@@ -161,7 +161,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                         )}
                     </AnimatePresence>
                     {/* Left: Action Button (Check/Plus/Minus) */}
-                    <div className="flex flex-col items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex flex-col items-center justify-center gap-1" onClick={(e) => { e.stopPropagation(); }}>
                         {task.type === 'habit' ? (
                             <div className="flex flex-col gap-1">
                                 <button
@@ -240,7 +240,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                     </div>
 
                     {/* Right: Menu / More Actions */}
-                    <div className="flex items-start justify-end" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-start justify-end" onClick={(e) => { e.stopPropagation(); }}>
                         <button
                             onClick={() => setIsEditOpen(true)}
                             className="p-1.5 opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] rounded-md transition-all"
@@ -255,7 +255,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                 {/* Edit Modal */}
                 <TaskEditModal
                     isOpen={isEditOpen}
-                    onClose={() => setIsEditOpen(false)}
+                    onClose={() => { setIsEditOpen(false); }}
                     task={task}
                     taskType={task.type}
                     onSave={handleSave}

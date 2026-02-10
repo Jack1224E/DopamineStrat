@@ -98,7 +98,7 @@ export function TaskEditModal({
             onClose();
         } else {
             setShowDeleteConfirm(true);
-            setTimeout(() => setShowDeleteConfirm(false), 3000);
+            setTimeout(() => { setShowDeleteConfirm(false); }, 3000);
         }
     };
 
@@ -211,7 +211,7 @@ export function TaskEditModal({
                                 <input
                                     type="text"
                                     value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
+                                    onChange={(e) => { setTitle(e.target.value); }}
                                     className={cn(
                                         "w-full px-3 py-2 rounded-lg",
                                         "bg-slate-800 border border-slate-600",
@@ -229,7 +229,7 @@ export function TaskEditModal({
                                 </label>
                                 <textarea
                                     value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
+                                    onChange={(e) => { setNotes(e.target.value); }}
                                     rows={3}
                                     className={cn(
                                         "w-full px-3 py-2 rounded-lg resize-none",
@@ -370,7 +370,7 @@ export function TaskEditModal({
                                         </div>
                                         {dueDate && (
                                             <div
-                                                onClick={() => setDueDate(undefined)}
+                                                onClick={() => { setDueDate(undefined); }}
                                                 className="p-2 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 cursor-pointer"
                                             >
                                                 <X className="w-4 h-4 text-slate-400" />
@@ -475,7 +475,7 @@ export function TaskEditModal({
                                                     className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50 border border-slate-700"
                                                 >
                                                     <div
-                                                        onClick={() => toggleChecklistItem(item.id)}
+                                                        onClick={() => { toggleChecklistItem(item.id); }}
                                                         className="cursor-pointer"
                                                     >
                                                         {item.completed ? (
@@ -495,7 +495,7 @@ export function TaskEditModal({
                                                         {item.text}
                                                     </span>
                                                     <div
-                                                        onClick={() => removeChecklistItem(item.id)}
+                                                        onClick={() => { removeChecklistItem(item.id); }}
                                                         className="p-1 rounded hover:bg-slate-700 cursor-pointer"
                                                     >
                                                         <X className="w-4 h-4 text-slate-400" />
@@ -510,7 +510,7 @@ export function TaskEditModal({
                                         <input
                                             type="text"
                                             value={newChecklistItem}
-                                            onChange={(e) => setNewChecklistItem(e.target.value)}
+                                            onChange={(e) => { setNewChecklistItem(e.target.value); }}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     e.preventDefault();

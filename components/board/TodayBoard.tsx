@@ -31,7 +31,7 @@ export function TodayBoard() {
             const q = filters.search.toLowerCase();
             result = result.filter(item =>
                 item.title.toLowerCase().includes(q) ||
-                (item.notes && item.notes.toLowerCase().includes(q))
+                (item.notes?.toLowerCase().includes(q))
             );
         }
 
@@ -111,7 +111,7 @@ export function TodayBoard() {
                 {/* Stats Header */}
                 <div className="border-b border-[var(--border-subtle)] bg-[var(--surface-1)]/50 backdrop-blur-sm">
                     <div className="container mx-auto px-4 py-4">
-                        <StatsBar onShopClick={() => setShowShop(true)} />
+                        <StatsBar onShopClick={() => { setShowShop(true); }} />
                     </div>
                 </div>
 
@@ -151,7 +151,7 @@ export function TodayBoard() {
                 </main>
             </div>
             {/* Render Shop here to avoid stacking context issues */}
-            <FlaskShop isOpen={showShop} onClose={() => setShowShop(false)} />
+            <FlaskShop isOpen={showShop} onClose={() => { setShowShop(false); }} />
         </>
     );
 }

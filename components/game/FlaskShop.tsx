@@ -177,7 +177,7 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
 
                                         <Button
                                             size="sm"
-                                            onClick={() => handleBuy('estus_flask')}
+                                            onClick={() => { handleBuy('estus_flask'); }}
                                             disabled={!canBuyFlask()}
                                             className={cn(
                                                 "min-w-[90px] shadow-sm font-semibold",
@@ -237,7 +237,7 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
                                                 <div className="flex flex-col gap-2">
                                                     <Button
                                                         size="sm"
-                                                        onClick={() => handleBuy(item.id)}
+                                                        onClick={() => { handleBuy(item.id); }}
                                                         disabled={!canBuyThis}
                                                         className={cn(
                                                             "min-w-[90px] font-semibold shadow-sm",
@@ -254,7 +254,7 @@ export function FlaskShop({ isOpen, onClose }: FlaskShopProps) {
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
-                                                            onClick={() => handleUse(item.id)}
+                                                            onClick={() => { handleUse(item.id); }}
                                                             disabled={!canUseThis}
                                                             className={cn(
                                                                 "min-w-[90px] text-xs h-7",

@@ -50,7 +50,7 @@ export function RewardEditModal({
             onClose();
         } else {
             setShowDeleteConfirm(true);
-            setTimeout(() => setShowDeleteConfirm(false), 3000);
+            setTimeout(() => { setShowDeleteConfirm(false); }, 3000);
         }
     };
 
@@ -121,7 +121,7 @@ export function RewardEditModal({
                                 <input
                                     type="text"
                                     value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
+                                    onChange={(e) => { setTitle(e.target.value); }}
                                     className={cn(
                                         "w-full px-3 py-2 rounded-lg",
                                         "bg-slate-800 border border-slate-600",
@@ -144,7 +144,7 @@ export function RewardEditModal({
                                     <input
                                         type="number"
                                         value={cost}
-                                        onChange={(e) => setCost(Number(e.target.value))}
+                                        onChange={(e) => { setCost(Number(e.target.value)); }}
                                         min="0"
                                         className={cn(
                                             "w-full pl-9 pr-3 py-2 rounded-lg",
@@ -164,7 +164,7 @@ export function RewardEditModal({
                                 </label>
                                 <textarea
                                     value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
+                                    onChange={(e) => { setNotes(e.target.value); }}
                                     rows={3}
                                     className={cn(
                                         "w-full px-3 py-2 rounded-lg resize-none",

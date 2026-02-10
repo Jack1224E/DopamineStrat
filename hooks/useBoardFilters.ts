@@ -17,8 +17,8 @@ export function useBoardFilters() {
 
     // 1. Applied Filters (Derived directly from URL)
     const filters: BoardFilters = {
-        search: searchParams.get('q') || '',
-        categories: searchParams.get('categories')?.split(',').filter(Boolean) || [],
+        search: searchParams.get('q') ?? '',
+        categories: searchParams.get('categories')?.split(',').filter(Boolean) ?? [],
         sort: (searchParams.get('sort') as BoardFilters['sort']) || 'created',
     };
 
@@ -33,7 +33,7 @@ export function useBoardFilters() {
     // 3. Debounce Update URL
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (searchTerm !== (searchParams.get('q') || '')) {
+            if (searchTerm !== (searchParams.get('q') ?? '')) {
                 const params = new URLSearchParams(searchParams.toString());
                 if (searchTerm) {
                     params.set('q', searchTerm);
@@ -47,7 +47,7 @@ export function useBoardFilters() {
                 router.replace(`${pathname}?${params.toString()}`, { scroll: false });
             }
         }, 300);
-        return () => clearTimeout(timer);
+        return () => { clearTimeout(timer); };
     }, [searchTerm, pathname, router, searchParams, filters.categories, filters.sort]);
 
     const updateUrl = (newParams: Record<string, string | null>) => {

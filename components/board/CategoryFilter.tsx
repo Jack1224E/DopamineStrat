@@ -23,7 +23,7 @@ export function CategoryFilter({ selectedCategories, onSelectCategory }: Categor
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => { document.removeEventListener('mousedown', handleClickOutside); };
     }, []);
 
     const categories = Object.entries(CATEGORY_INFO).map(([key, info]) => ({
@@ -39,7 +39,7 @@ export function CategoryFilter({ selectedCategories, onSelectCategory }: Categor
         <div className="relative" ref={containerRef}>
             <Button
                 variant="ghost"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={() => { setIsOpen(!isOpen); }}
                 className={cn(
                     "h-10 px-3 gap-2 border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]",
                     selectedCategories.length > 0 && "border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
@@ -65,7 +65,7 @@ export function CategoryFilter({ selectedCategories, onSelectCategory }: Categor
                             return (
                                 <button
                                     key={cat.id}
-                                    onClick={() => toggleCategory(cat.id)}
+                                    onClick={() => { toggleCategory(cat.id); }}
                                     className={cn(
                                         "w-full flex items-center justify-between px-2 py-1.5 rounded-[var(--radius-sm)] text-sm transition-colors",
                                         "hover:bg-[var(--surface-2)] text-[var(--text-primary)]",

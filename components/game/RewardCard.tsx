@@ -39,7 +39,7 @@ export function RewardCard({ reward }: RewardCardProps) {
         });
 
         // Reset state after animation
-        setTimeout(() => setIsBuying(false), 500);
+        setTimeout(() => { setIsBuying(false); }, 500);
     };
 
     return (
@@ -96,7 +96,7 @@ export function RewardCard({ reward }: RewardCardProps) {
                             <>
                                 <div
                                     className="fixed inset-0 z-10"
-                                    onClick={() => setShowMenu(false)}
+                                    onClick={() => { setShowMenu(false); }}
                                 />
                                 <div className="absolute right-0 top-full mt-1 z-20 w-32 rounded-lg bg-[var(--surface-2)] border border-[var(--border-strong)] shadow-lg overflow-hidden py-1">
                                     <button
@@ -146,7 +146,7 @@ export function RewardCard({ reward }: RewardCardProps) {
 
             <RewardEditModal
                 isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
+                onClose={() => { setIsEditModalOpen(false); }}
                 reward={reward}
                 onSave={(updates) => updateReward(reward.id, updates)}
                 onDelete={() => deleteReward(reward.id)}

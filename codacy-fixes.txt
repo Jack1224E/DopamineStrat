@@ -1,0 +1,204 @@
+diff --git a/components/game/FlaskShop.tsx b/components/game/FlaskShop.tsx
+--- a/components/game/FlaskShop.tsx
++++ b/components/game/FlaskShop.tsx
+@@ -180,1 +180,1 @@
+-                                            onClick={() => handleBuy('estus_flask')}
++                                            onClick={() => { handleBuy('estus_flask'); }}
+@@ -240,1 +240,1 @@
+-                                                        onClick={() => handleBuy(item.id)}
++                                                        onClick={() => { handleBuy(item.id); }}
+@@ -257,1 +257,1 @@
+-                                                            onClick={() => handleUse(item.id)}
++                                                            onClick={() => { handleUse(item.id); }}
+diff --git a/components/board/BoardToolbar.tsx b/components/board/BoardToolbar.tsx
+--- a/components/board/BoardToolbar.tsx
++++ b/components/board/BoardToolbar.tsx
+@@ -48,1 +48,1 @@
+-        return () => window.removeEventListener('keydown', handleKeyDown);
++        return () => { window.removeEventListener('keydown', handleKeyDown); };
+@@ -78,1 +78,1 @@
+-                                onFocus={() => setIsSearchFocused(true)}
++                                onFocus={() => { setIsSearchFocused(true); }}
+@@ -79,1 +79,1 @@
+-                                onBlur={() => setIsSearchFocused(false)}
++                                onBlur={() => { setIsSearchFocused(false); }}
+@@ -133,1 +133,1 @@
+-                        onClick={() => setIsTaskModalOpen(true)}
++                        onClick={() => { setIsTaskModalOpen(true); }}
+@@ -152,1 +152,1 @@
+-                onClose={() => setIsTaskModalOpen(false)
++                onClose={() => { setIsTaskModalOpen(false); }
+diff --git a/components/task/TaskCard.tsx b/components/task/TaskCard.tsx
+--- a/components/task/TaskCard.tsx
++++ b/components/task/TaskCard.tsx
+@@ -101,1 +101,1 @@
+-        setTimeout(() => setShowReward(false), 1200);
++        setTimeout(() => { setShowReward(false); }, 1200);
+@@ -136,1 +136,1 @@
+-                    onClick={() => setIsEditOpen(true)}
++                    onClick={() => { setIsEditOpen(true); }}
+@@ -164,1 +164,1 @@
+-                    <div className="flex flex-col items-center justify-center gap-1" onClick={(e) => e.stopPropagation()}>
++                    <div className="flex flex-col items-center justify-center gap-1" onClick={(e) => { e.stopPropagation(); }}>
+@@ -243,1 +243,1 @@
+-                    <div className="flex items-start justify-end" onClick={(e) => e.stopPropagation()}>
++                    <div className="flex items-start justify-end" onClick={(e) => { e.stopPropagation(); }}>
+@@ -258,1 +258,1 @@
+-                    onClose={() => setIsEditOpen(false)}
++                    onClose={() => { setIsEditOpen(false); }}
+diff --git a/store/gameStore.ts b/store/gameStore.ts
+--- a/store/gameStore.ts
++++ b/store/gameStore.ts
+@@ -687,1 +687,1 @@
+-                if (!task || !task.checklist) return;
++                if (!task?.checklist) return;
+diff --git a/components/game/RewardCard.tsx b/components/game/RewardCard.tsx
+--- a/components/game/RewardCard.tsx
++++ b/components/game/RewardCard.tsx
+@@ -42,1 +42,1 @@
+-        setTimeout(() => setIsBuying(false), 500);
++        setTimeout(() => { setIsBuying(false); }, 500);
+@@ -99,1 +99,1 @@
+-                                    onClick={() => setShowMenu(false)}
++                                    onClick={() => { setShowMenu(false); }}
+@@ -149,1 +149,1 @@
+-                onClose={() => setIsEditModalOpen(false)}
++                onClose={() => { setIsEditModalOpen(false); }}
+diff --git a/hooks/useDebounce.ts b/hooks/useDebounce.ts
+--- a/hooks/useDebounce.ts
++++ b/hooks/useDebounce.ts
+@@ -7,1 +7,1 @@
+-        const timer = setTimeout(() => setDebouncedValue(value), delay || 500);
++        const timer = setTimeout(() => setDebouncedValue(value), delay ?? 500);
+diff --git a/app/history/page.tsx b/app/history/page.tsx
+--- a/app/history/page.tsx
++++ b/app/history/page.tsx
+@@ -105,1 +105,1 @@
+-                            onClick={() => setFilterType(type)}
++                            onClick={() => { setFilterType(type); }}
+diff --git a/components/ui/progress.tsx b/components/ui/progress.tsx
+--- a/components/ui/progress.tsx
++++ b/components/ui/progress.tsx
+@@ -118,1 +118,1 @@
+-          <span>{valueLabel || "Progress"}</span>
++          <span>{valueLabel ?? "Progress"}</span>
+diff --git a/components/game/RewardColumn.tsx b/components/game/RewardColumn.tsx
+--- a/components/game/RewardColumn.tsx
++++ b/components/game/RewardColumn.tsx
+@@ -19,1 +19,1 @@
+-    const rewards = propRewards || storeRewards; // Use prop if available, else store
++    const rewards = propRewards ?? storeRewards; // Use prop if available, else store
+@@ -50,1 +50,1 @@
+-                    onClick={() => setIsAdding(!isAdding)}
++                    onClick={() => { setIsAdding(!isAdding); }}
+@@ -77,1 +77,1 @@
+-                                onChange={(e) => setNewRewardTitle(e.target.value)}
++                                onChange={(e) => { setNewRewardTitle(e.target.value); }}
+@@ -89,1 +89,1 @@
+-                                        onChange={(e) => setNewRewardCost(Number(e.target.value))}
++                                        onChange={(e) => { setNewRewardCost(Number(e.target.value)); }}
+diff --git a/components/layout/StatsBar.tsx b/components/layout/StatsBar.tsx
+--- a/components/layout/StatsBar.tsx
++++ b/components/layout/StatsBar.tsx
+@@ -122,1 +122,1 @@
+-            {!onShopClick && <FlaskShop isOpen={internalShowShop} onClose={() => setInternalShowShop(false)} />}
++            {!onShopClick && <FlaskShop isOpen={internalShowShop} onClose={() => { setInternalShowShop(false); }} />}
+@@ -132,1 +132,1 @@
+-                        onClick={() => setShowResetModal(false)}
++                        onClick={() => { setShowResetModal(false); }}
+@@ -272,1 +272,1 @@
+-                        onClick={() => setIsExpanded(!isExpanded)}
++                        onClick={() => { setIsExpanded(!isExpanded); }}
+@@ -459,1 +459,1 @@
+-                                            onClick={() => setShowResetModal(true)}
++                                            onClick={() => { setShowResetModal(true); }}
+diff --git a/components/task/TaskEditModal.tsx b/components/task/TaskEditModal.tsx
+--- a/components/task/TaskEditModal.tsx
++++ b/components/task/TaskEditModal.tsx
+@@ -101,1 +101,1 @@
+-            setTimeout(() => setShowDeleteConfirm(false), 3000);
++            setTimeout(() => { setShowDeleteConfirm(false); }, 3000);
+@@ -214,1 +214,1 @@
+-                                    onChange={(e) => setTitle(e.target.value)}
++                                    onChange={(e) => { setTitle(e.target.value); }}
+@@ -232,1 +232,1 @@
+-                                    onChange={(e) => setNotes(e.target.value)}
++                                    onChange={(e) => { setNotes(e.target.value); }}
+@@ -373,1 +373,1 @@
+-                                                onClick={() => setDueDate(undefined)}
++                                                onClick={() => { setDueDate(undefined); }}
+@@ -478,1 +478,1 @@
+-                                                        onClick={() => toggleChecklistItem(item.id)}
++                                                        onClick={() => { toggleChecklistItem(item.id); }}
+@@ -498,1 +498,1 @@
+-                                                        onClick={() => removeChecklistItem(item.id)}
++                                                        onClick={() => { removeChecklistItem(item.id); }}
+@@ -513,1 +513,1 @@
+-                                            onChange={(e) => setNewChecklistItem(e.target.value)}
++                                            onChange={(e) => { setNewChecklistItem(e.target.value); }}
+diff --git a/components/game/RewardEditModal.tsx b/components/game/RewardEditModal.tsx
+--- a/components/game/RewardEditModal.tsx
++++ b/components/game/RewardEditModal.tsx
+@@ -53,1 +53,1 @@
+-            setTimeout(() => setShowDeleteConfirm(false), 3000);
++            setTimeout(() => { setShowDeleteConfirm(false); }, 3000);
+@@ -124,1 +124,1 @@
+-                                    onChange={(e) => setTitle(e.target.value)}
++                                    onChange={(e) => { setTitle(e.target.value); }}
+@@ -147,1 +147,1 @@
+-                                        onChange={(e) => setCost(Number(e.target.value))}
++                                        onChange={(e) => { setCost(Number(e.target.value)); }}
+@@ -167,1 +167,1 @@
+-                                    onChange={(e) => setNotes(e.target.value)}
++                                    onChange={(e) => { setNotes(e.target.value); }}
+diff --git a/components/board/CategoryFilter.tsx b/components/board/CategoryFilter.tsx
+--- a/components/board/CategoryFilter.tsx
++++ b/components/board/CategoryFilter.tsx
+@@ -26,1 +26,1 @@
+-        return () => document.removeEventListener('mousedown', handleClickOutside);
++        return () => { document.removeEventListener('mousedown', handleClickOutside); };
+@@ -42,1 +42,1 @@
+-                onClick={() => setIsOpen(!isOpen)}
++                onClick={() => { setIsOpen(!isOpen); }}
+@@ -68,1 +68,1 @@
+-                                    onClick={() => toggleCategory(cat.id)}
++                                    onClick={() => { toggleCategory(cat.id); }}
+diff --git a/hooks/useBoardFilters.ts b/hooks/useBoardFilters.ts
+--- a/hooks/useBoardFilters.ts
++++ b/hooks/useBoardFilters.ts
+@@ -20,1 +20,1 @@
+-        search: searchParams.get('q') || '',
++        search: searchParams.get('q') ?? '',
+@@ -21,1 +21,1 @@
+-        categories: searchParams.get('categories')?.split(',').filter(Boolean) || [],
++        categories: searchParams.get('categories')?.split(',').filter(Boolean) ?? [],
+@@ -36,1 +36,1 @@
+-            if (searchTerm !== (searchParams.get('q') || '')) {
++            if (searchTerm !== (searchParams.get('q') ?? '')) {
+@@ -50,1 +50,1 @@
+-        return () => clearTimeout(timer);
++        return () => { clearTimeout(timer); };
+diff --git a/components/board/TodayBoard.tsx b/components/board/TodayBoard.tsx
+--- a/components/board/TodayBoard.tsx
++++ b/components/board/TodayBoard.tsx
+@@ -34,1 +34,1 @@
+-                (item.notes && item.notes.toLowerCase().includes(q))
++                (item.notes?.toLowerCase().includes(q))
+@@ -114,1 +114,1 @@
+-                        <StatsBar onShopClick={() => setShowShop(true)} />
++                        <StatsBar onShopClick={() => { setShowShop(true); }} />
+@@ -154,1 +154,1 @@
+-            <FlaskShop isOpen={showShop} onClose={() => setShowShop(false)} />
++            <FlaskShop isOpen={showShop} onClose={() => { setShowShop(false); }} />
+diff --git a/components/task/TaskColumn.tsx b/components/task/TaskColumn.tsx
+--- a/components/task/TaskColumn.tsx
++++ b/components/task/TaskColumn.tsx
+@@ -80,1 +80,1 @@
+-                                onClick={() => setActiveTab(tab.id as any)}
++                                onClick={() => setActiveTab(tab.id as unknown)}
+@@ -110,1 +110,1 @@
+-                            onChange={(e) => setNewTaskTitle(e.target.value)}
++                            onChange={(e) => { setNewTaskTitle(e.target.value); }}
+@@ -126,1 +126,1 @@
+-                        onClick={() => setIsInputVisible(true)}
++                        onClick={() => { setIsInputVisible(true); }}

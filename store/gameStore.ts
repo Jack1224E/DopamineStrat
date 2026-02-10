@@ -684,7 +684,7 @@ export const useGameStore = create<GameState>()(
                 const state = get();
                 const taskList = type === 'habit' ? state.habits : type === 'daily' ? state.dailies : state.todos;
                 const task = taskList.find((t) => t.id === taskId);
-                if (!task || !task.checklist) return;
+                if (!task?.checklist) return;
 
                 // Toggle the checklist item
                 const updatedChecklist = task.checklist.map((item) =>

@@ -77,7 +77,7 @@ export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps)
                         {tabs.map(tab => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id as any)}
+                                onClick={() => setActiveTab(tab.id as 'active' | 'completed' | 'all')}
                                 className={cn(
                                     "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-[var(--radius-sm)] transition-all",
                                     activeTab === tab.id
@@ -107,7 +107,7 @@ export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps)
                         <input
                             type="text"
                             value={newTaskTitle}
-                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            onChange={(e) => { setNewTaskTitle(e.target.value); }}
                             onKeyDown={handleKeyDown}
                             placeholder={placeholder}
                             autoFocus
@@ -123,7 +123,7 @@ export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps)
                     </div>
                 ) : (
                     <button
-                        onClick={() => setIsInputVisible(true)}
+                        onClick={() => { setIsInputVisible(true); }}
                         className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-md)] bg-emerald-500/5 hover:bg-emerald-500/10 border border-dashed border-emerald-500/30 hover:border-emerald-500/50 text-emerald-400/70 hover:text-emerald-400 transition-all text-sm font-medium group"
                     >
                         <Plus className="w-4 h-4 group-hover:scale-110 group-hover:rotate-90 transition-transform duration-200" />
