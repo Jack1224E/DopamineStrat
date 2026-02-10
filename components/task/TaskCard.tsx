@@ -242,7 +242,7 @@ export function TaskCard({ task, compact = false }: TaskCardProps) {
                     {/* Right: Menu / More Actions */}
                     <div className="flex items-start justify-end" onClick={(e) => { e.stopPropagation(); }}>
                         <button
-                            onClick={() => setIsEditOpen(true)}
+                            onClick={() => { setIsEditOpen(true); }}
                             className="p-1.5 opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-3)] rounded-md transition-all"
                         >
                             <MoreVertical className="w-4 h-4" />

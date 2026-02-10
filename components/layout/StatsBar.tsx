@@ -156,7 +156,7 @@ export function StatsBar({ onShopClick }: StatsBarProps) {
                                 <Button
                                     variant="outline"
                                     className="flex-1 border-slate-700 hover:bg-slate-800"
-                                    onClick={() => setShowResetModal(false)}
+                                    onClick={() => { setShowResetModal(false); }}
                                 >
                                     Cancel
                                 </Button>

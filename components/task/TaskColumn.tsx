@@ -77,7 +77,7 @@ export function TaskColumn({ title, tasks, type, placeholder }: TaskColumnProps)
                         {tabs.map(tab => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id as 'active' | 'completed' | 'all')}
+                                onClick={() => { setActiveTab(tab.id as 'active' | 'completed' | 'all'); }}
                                 className={cn(
                                     "flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-[var(--radius-sm)] transition-all",
                                     activeTab === tab.id
